@@ -1,0 +1,39 @@
+Name:		matlab
+Version:	0.1
+Cabal-Version:  >= 1.2
+Author:		Dylan Simon
+Maintainer:     dylan@dylex.net
+License:        BSD3
+Synopsis:	Matlab bindings and interface
+tested-with:    GHC == 6.8
+extra-source-files: configure matlab.buildinfo.in Foreign/Matlab/Config.hs.in
+		src/Makefile.in src/*.m
+extra-tmp-files: matlab.buildinfo Foreign/Matlab/Config.hs
+		src/Makefile
+
+Flag Engine
+    Description:	Enable Matlab engine (spawned eng process) support
+Flag Runtime
+    Description:	Enable Matlab runtime (linked library) support
+Flag MCR
+    Description:	Use installed Matlab Component Runtime instead of full Matlab
+    default:		False
+
+Library
+    Build-depends:	base, unix, array, filepath, Cabal
+    Exposed-modules:	Foreign.Matlab, Foreign.Matlab.Types, Foreign.Matlab.Array, Foreign.Matlab.Array.MArray, Foreign.Matlab.Array.IMX, Foreign.Matlab.Array.Able, Foreign.Matlab.MAT
+    if flag(engine)
+        Exposed-modules: Foreign.Matlab.Engine
+    if flag(runtime)
+        Exposed-modules: Foreign.Matlab.Runtime, Foreign.Matlab.Runtime.Generic
+    Other-modules:	Foreign.Matlab.Config, Foreign.Matlab.Util, Foreign.Matlab.Internal
+    Extensions:         ForeignFunctionInterface, TypeSynonymInstances, MultiParamTypeClasses, FunctionalDependencies, EmptyDataDecls, ScopedTypeVariables, LiberalTypeSynonyms, DeriveDataTypeable, FlexibleInstances, UndecidableInstances
+    ghc-options:        -Wall -fno-warn-name-shadowing -O
+    extra-libraries:    mx
+    if flag(engine)
+        extra-libraries: eng
+    if flag(mcr)
+        build-tools:	mcr
+    else
+        build-tools:	matlab
+    extra-lib-dirs:	src

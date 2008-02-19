@@ -1,0 +1,10 @@
+MCC=@MATLAB_MCC@
+MCCFLAGS=@MCCFLAGS@
+
+libhsmatlab.so: hsmatlab.m hsmatlab.c
+	$(MCC) $(MCCFLAGS) -W lib:$(basename $@) -c hsmatlab.m
+	cat hsmatlab.c >> $(basename $@).c
+	$(MCC) $(MCCFLAGS) -W none -T link:lib $(basename $@).c
+
+clean:
+	rm -rf libhsmatlab* mccExcludedFiles.log readme.txt

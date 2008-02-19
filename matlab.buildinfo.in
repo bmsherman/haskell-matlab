@@ -1,0 +1,3 @@
+include-dirs: @MATLAB_DIR@/extern/include
+extra-lib-dirs: @MATLAB_LIB_PATH@
+ld-options: "-Wl,-rpath,@MATLAB_LIB_DIR@" "-Wl,--disable-new-dtags"
