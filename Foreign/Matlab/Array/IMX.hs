@@ -38,9 +38,7 @@ type IMXArray a = Array MIndex a
 data IMXData =
     IMXNull
   | IMXCell	(IMXArray IMXData)
-  | IMXStruct   
-      [String]	-- ^ field names
-      (Array (MIndex,Int) IMXData) -- ^ array mapping (index,field index) to values
+  | IMXStruct   [String] (Array (MIndex,Int) IMXData) -- ^ field name list and array mapping (index,field index) to values
   | IMXLogical	(IMXArray MLogical)
   | IMXChar	(IMXArray MChar)
   | IMXDouble	(IMXArray MDouble)
@@ -55,9 +53,7 @@ data IMXData =
   | IMXUint64	(IMXArray MUint64)
   | IMXComplexDouble	(IMXArray (MComplex MDouble))
   | IMXComplexSingle	(IMXArray (MComplex MSingle))
-  | IMXObject   
-      String -- ^ object class name
-      IMXData -- ^ object data, currently always IMXStruct
+  | IMXObject   String IMXData -- ^ object class name and object data, currently always IMXStruct
   deriving (Eq)
 
 type IMXFun = [IMXData] -> Int -> IO [IMXData]
@@ -100,6 +96,8 @@ listIMX s = imxConstr . listIMXArray s
 -- |Generic 'IMXData' scalar constructor
 scalarIMX :: IMXArrayElem a => a -> IMXData
 scalarIMX = imxConstr . scalarIMXArray
+emptyIMX :: IMXArrayElem a => a -> IMXData
+emptyIMX a = listIMX [0] ([] `asTypeOf` [a])
 
 -- |Generic 'IMXData' array size accessor
 imxSize :: IMXData -> MSize

@@ -15,6 +15,7 @@ module Foreign.Matlab.Internal (
     MXUint16, MUint16,
     MXUint32, MUint32,
     MXUint64, MUint64,
+    MXArrayType,
     MXArrayPtr, MXArray(..),
     mkMXArray, withMXArray,
     unsafeCastMXArray,
