@@ -7,7 +7,7 @@ License:        BSD3
 Synopsis:	Matlab bindings and interface
 tested-with:    GHC == 6.8
 extra-source-files: configure matlab.buildinfo.in Foreign/Matlab/Config.hs.in
-		src/Makefile.in src/*.m
+		src/Makefile.in src/hsmatlab.m src/hsmatlab.c
 extra-tmp-files: matlab.buildinfo Foreign/Matlab/Config.hs
 		src/Makefile
 
