@@ -5,6 +5,9 @@ Author:		Dylan Simon
 Maintainer:     dylan@dylex.net
 License:        BSD3
 Synopsis:	Matlab bindings and interface
+Description:	This package aims to provide a comprehensive interface to the MathWorks MATLAB(R) libraries and native data structures, including complete matrix access, MAT-format files, linking and execution of runtime libraries and engine.  Requires MATLAB for full functionality or an installed Matlab Component Runtime (MCR).
+Category:	Foreign,Math
+build-type:	Custom
 tested-with:    GHC == 6.8
 extra-source-files: configure matlab.buildinfo.in Foreign/Matlab/Config.hs.in
 		src/Makefile.in src/hsmatlab.m src/hsmatlab.c
@@ -28,7 +31,7 @@ Library
         Exposed-modules: Foreign.Matlab.Runtime, Foreign.Matlab.Runtime.Generic
     Other-modules:	Foreign.Matlab.Config, Foreign.Matlab.Util, Foreign.Matlab.Internal
     Extensions:         ForeignFunctionInterface, TypeSynonymInstances, MultiParamTypeClasses, FunctionalDependencies, EmptyDataDecls, ScopedTypeVariables, LiberalTypeSynonyms, DeriveDataTypeable, FlexibleInstances, UndecidableInstances
-    ghc-options:        -Wall -fno-warn-name-shadowing -O
+    ghc-options:        -Wall -fno-warn-name-shadowing
     extra-libraries:    mx
     if flag(engine)
         extra-libraries: eng
