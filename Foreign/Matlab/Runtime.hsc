@@ -57,10 +57,12 @@ terminateApp term = modifyMVar_ initialized maybeterm where
       else fail "mclTerminateApplication"
   maybeterm n = return $ pred n
 
+{-
 foreign import ccall unsafe mclInitializeApplication :: InitApp
 foreign import ccall unsafe mclTerminateApplication :: TermApp
 initialize = initializeApp mclInitializeApplication
 terminate = terminateApp mclTerminateApplication
+-}
 
 foreign import ccall "dynamic" mkInitApp :: FunPtr a -> InitApp
 foreign import ccall "dynamic" mkTermApp :: FunPtr a -> TermApp

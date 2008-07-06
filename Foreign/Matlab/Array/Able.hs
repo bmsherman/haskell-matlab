@@ -9,7 +9,6 @@ module Foreign.Matlab.Array.Able (
     withMatlabArray, fromMatlabArray
   ) where
 
-import Control.Applicative
 import Foreign.Matlab.Util
 import Foreign.Matlab.Types
 import Foreign.Matlab.Array.IMX
@@ -46,7 +45,7 @@ instance Matlabable () where
   fromMatlab _ = Nothing
 
 -- |Generate a temporary 'MXArray'
-withMatlabArray :: Matlabable a => With a MAnyArray (IO a)
+withMatlabArray :: Matlabable a => a -> (MAnyArray -> IO a) -> IO a
 withMatlabArray = withIMXData . toMatlab
 
 -- |Convert directly from 'MXArray' (without freeing the original array)

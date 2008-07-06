@@ -17,10 +17,10 @@ import Foreign.Matlab.Array
 -- |A wrapper for 'MXArray' to allow for a 'Data.Array.MArray.MArray' instance.  All instances of this type will have 'MIndex' as @i@
 newtype MMXArray i e = MMXArray { mmxArray :: MXArray e }
 
--- |Get an 'MArray' instance for an 'MXArray'.  The resulting object is just a different interface to the same underlying array.
+-- |Get an 'Data.Array.MArray.MArray' instance for an 'MXArray'.  The resulting object is just a different interface to the same underlying array.
 mxMArray :: MXArrayComponent a => MXArray a -> MMXArray MIndex a
 mxMArray = MMXArray
--- |Get a 'MXArray' back from its 'MArray' instance
+-- |Get a 'MXArray' back from its 'Data.Array.MArray.MArray' instance
 unMmxArray :: MXArrayComponent a => MMXArray MIndex a -> MXArray a
 unMmxArray = mmxArray
 

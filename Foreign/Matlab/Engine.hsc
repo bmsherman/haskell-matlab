@@ -73,7 +73,7 @@ data EngineEvalArg a = EvalArray (MXArray a) | EvalVar String
 -- This automates 'engineSetVar' on arguments (using \"hseval_inN\"), 'engineEval', and 'engineGetVar' on results (using \"hseval_outN\").
 engineEvalFun :: Engine -> String -> [EngineEvalArg a] -> Int -> IO [MAnyArray]
 engineEvalFun eng fun arg no = do
-  arg <- zipWithM makearg arg [1..]
+  arg <- zipWithM makearg arg [1 :: Int ..]
   let out = map makeout [1..no]
   let outs = if out == [] then "" else "[" ++ unwords out ++ "] = "
   engineEval eng (outs ++ fun ++ "(" ++ intercalate "," arg ++ ")")

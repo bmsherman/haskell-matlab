@@ -108,6 +108,7 @@ instance MType MXClassID MXClass where
   hs2mx MXClassUint64   = #const mxUINT64_CLASS
   hs2mx MXClassFun      = #const mxFUNCTION_CLASS
   hs2mx MXClassObject   = #const mxOBJECT_CLASS	 
+  mxClassOf _ = error "mxClassOf: no class for MXClassID"
 
 type MXChar = #type mxChar
 type MChar = Char

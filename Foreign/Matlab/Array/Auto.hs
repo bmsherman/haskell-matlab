@@ -27,7 +27,7 @@ mxAuto (MXArray a)
   | otherwise = MXAuto =.< newForeignPtr mxDestroyArray_ptr a
 
 -- |Use a 'MXAuto'
-withMXAuto :: With (MXAuto a) (MXArray a) (IO b)
+withMXAuto :: MXAuto a -> (MXArray a -> IO b) -> IO b
 withMXAuto (MXAuto a) f = withForeignPtr a (f . MXArray)
 
 type MAnyAuto = MXAuto MAny

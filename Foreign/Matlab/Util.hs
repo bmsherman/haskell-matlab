@@ -50,10 +50,10 @@ mapWithArrayLen w l f =
     in set l 0
 
 segment :: Int -> [a] -> [[a]]
-segment n [] = []
+segment _ [] = []
 segment n l = a : segment n r where (a,r) = splitAt n l
 
 replaceIndex :: [a] -> Int -> a -> [a]
 replaceIndex [] _ _ = error "replaceIndex: index too large"
-replaceIndex (x:l) 0 y = y:l
+replaceIndex (_:l) 0 y = y:l
 replaceIndex (x:l) n y = x : replaceIndex l (pred n) y

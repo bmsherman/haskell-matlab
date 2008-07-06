@@ -8,7 +8,7 @@ module Foreign.Matlab.Array.IMX (
     IMXData(..),
     IMXArrayElem,
 
-    -- * Interface with "Matlab.Array"
+    -- * Interface with "Foreign.Matlab.Array"
     imxData, iMXData,
     imxFun, iMXFun,
     withIMXData, takeIMXData,
@@ -96,8 +96,8 @@ listIMX s = imxConstr . listIMXArray s
 -- |Generic 'IMXData' scalar constructor
 scalarIMX :: IMXArrayElem a => a -> IMXData
 scalarIMX = imxConstr . scalarIMXArray
-emptyIMX :: IMXArrayElem a => a -> IMXData
-emptyIMX a = listIMX [0] ([] `asTypeOf` [a])
+--emptyIMX :: IMXArrayElem a => a -> IMXData
+--emptyIMX a = listIMX [0] ([] `asTypeOf` [a])
 
 -- |Generic 'IMXData' array size accessor
 imxSize :: IMXData -> MSize
@@ -218,14 +218,14 @@ iMXData = imxd where
     mxArraySetAll m =<< mapM f (elems a)
     return $ anyMXArray m
 
-withIMXData :: With IMXData MAnyArray (IO a)
+withIMXData :: IMXData -> (MAnyArray -> IO a) -> IO a
 withIMXData d f = do
   a <- iMXData d
   r <- f a
   freeMXArray a
   return r
 
-withIMXDataList :: With [IMXData] [MAnyArray] (IO a)
+withIMXDataList :: [IMXData] -> ([MAnyArray] -> IO a) -> IO a
 withIMXDataList = mapWith withIMXData
 
 takeIMXData :: MXArray a -> IO IMXData
