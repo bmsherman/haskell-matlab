@@ -41,6 +41,8 @@ env -i $MATLAB_BIN -e > $matlab_env 2>&AS_MESSAGE_LOG_FD
 matlab_envres=$?
 cat $matlab_env >&AS_MESSAGE_LOG_FD
 
+AC_DEFUN([MATLAB_GETENV], [`. $matlab_env && echo "${$1}"`])
+
 unset MATLAB
 AS_IF([test $matlab_envres -gt 0], 
       [AC_MSG_RESULT([failed])
@@ -48,9 +50,7 @@ AS_IF([test $matlab_envres -gt 0],
       [! (. $matlab_env > /dev/null 2>&1 && test -n "$MATLAB")],
       [AC_MSG_RESULT([invalid])
       AC_MSG_FAILURE([$MATLAB_BIN -e output invalid])],
-      [AC_MSG_RESULT([ok])])
-
-AC_DEFUN([MATLAB_GETENV], [`. $matlab_env && echo "${$1}"`])
+      [AC_MSG_RESULT([MATLAB_GETENV([MATLAB])])])
 
 MATLAB_DIR=MATLAB_GETENV([MATLAB])
 MATLAB_ARCH=MATLAB_GETENV([ARCH])

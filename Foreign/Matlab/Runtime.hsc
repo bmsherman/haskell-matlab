@@ -30,7 +30,8 @@ import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
 import Foreign.Matlab.Types
 
-#include <mclmcr.h>
+#include "hsc_sym.h"
+#include "libhsmatlab.h"
 
 initialized :: MVar Integer
 initialized = unsafePerformIO (newMVar 0)
@@ -89,9 +90,9 @@ openMLibrary mlname opt = do
       file = (if isPrefixOf "lib" base then id else ("lib" ++)) ((if isSuffixOf dllExtension base || isInfixOf (dllExtension++[extSeparator]) base then id else (<.> dllExtension)) base)
   dl <- dlopen (path </> file) [RTLD_NOW]
   let ml = MLibrary name dl
-  inia <- mkInitApp =.< dlsym dl "mclInitializeApplication"
+  inia <- mkInitApp =.< dlsym dl #SYM mclInitializeApplication
   initializeApp inia opt
-  --initialize
+  --initialize opt
   inif <- mkInitFun =.< dlsym dl ("lib" ++ name ++ "Initialize")
   r <- inif
   if boolC r
@@ -103,7 +104,7 @@ closeMLibrary :: MLibrary -> IO ()
 closeMLibrary (MLibrary name dl) = do
   fini <- mkFiniFun =.< dlsym dl ("lib" ++ name ++ "Terminate")
   fini
-  fina <- mkTermApp =.< dlsym dl "mclTerminateApplication"
+  fina <- mkTermApp =.< dlsym dl #SYM mclTerminateApplication
   terminateApp fina
   --terminate
   dlclose dl

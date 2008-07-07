@@ -3,8 +3,11 @@ MCCFLAGS=@MCCFLAGS@
 
 libhsmatlab.so: hsmatlab.m hsmatlab.c
 	$(MCC) $(MCCFLAGS) -W lib:$(basename $@) -c hsmatlab.m
+	[ -f $@ ] && mv $@ $@.post
 	cat hsmatlab.c >> $(basename $@).c
 	$(MCC) $(MCCFLAGS) -W none -T link:lib $(basename $@).c
+	[ -f $@.post ] && cat $(basename $@).ctf >> $@
 
 clean:
-	rm -rf libhsmatlab* mccExcludedFiles.log readme.txt
+	rm -rf libhsmatlab_mcr
+	rm -f libhsmatlab* mccExcludedFiles.log readme.txt

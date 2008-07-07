@@ -13,7 +13,7 @@ programs = [
     simpleProgram "matlab", 
     Program "mcr" (\_ -> return Nothing) (\_ _ -> return Nothing)
   ]
-runtime desc = maybe False (elem "Matlab.Runtime" . exposedModules) $ library desc
+runtime desc = maybe False (elem "Foreign.Matlab.Runtime" . exposedModules) $ library desc
 postconf args flags desc build = do
   confExists <- doesFileExist "configure"
   unless confExists $ rawSystemPathExit verb "autoconf" []
