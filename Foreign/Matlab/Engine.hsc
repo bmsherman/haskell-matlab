@@ -2,7 +2,7 @@
   Interface to a Matlab engine.
   This works by spawning a separate matlab process and interchanging data in MAT format.
 
-  Note that you cannot use "Matlab.Engine" and "Matlab.Runtime" in the same program.
+  Note that you cannot use "Foreign.Matlab.Engine" and "Foreign.Matlab.Runtime" in the same program.
   This seems to be a Matlab limitation.
 -}
 module Foreign.Matlab.Engine (

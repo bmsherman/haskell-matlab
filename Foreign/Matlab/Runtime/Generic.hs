@@ -1,7 +1,7 @@
 {-|
   Generic runtime library interface.
-  This uses a Matlab library built along with HSMatlab to provide runtime access to general Matlab functionality throuh "Matlab.Runtime".
-  Any builtin Matlab function can be called through this interface, but other M-file functions may not -- these need to be put into a library or used through "Matlab.Engine" instead.
+  This uses a Matlab library built along with HSMatlab to provide runtime access to general Matlab functionality throuh "Foreign.Matlab.Runtime".
+  Any builtin Matlab function can be called through this interface, but other M-file functions may not -- these need to be put into a library or used through "Foreign.Matlab.Engine" instead.
 -}
 module Foreign.Matlab.Runtime.Generic (
     MLGeneric,

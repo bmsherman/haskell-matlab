@@ -3,7 +3,7 @@
   This uses a Matlab shared library which has been built with \"mcc -l\", and only functions in this library may be called.
   Multiple libraries may be loaded simultaneously.
 
-  Note that you cannot use "Matlab.Runtime" and "Matlab.Engine" in the same program.
+  Note that you cannot use "Foreign.Matlab.Runtime" and "Foreign.Matlab.Engine" in the same program.
   This seems to be a Matlab limitation.
 -}
 module Foreign.Matlab.Runtime (
@@ -131,7 +131,7 @@ mLibraryCall ml f arg no = do
 
 foreign import ccall "dynamic" mkFeval :: FunPtr a -> CString -> MLXFun
 
--- |Internal use only.  See "Matlab.Runtime.Generic"
+-- |Internal use only.  See "Foreign.Matlab.Runtime.Generic"
 mlGenericFeval :: MLibrary -> IO (CString -> MFun)
 mlGenericFeval MLibrary{ mlName = "hsmatlab", mlDL = dl } = do
   fe <- mkFeval =.< dlsym dl "mlHsFeval"

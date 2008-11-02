@@ -174,7 +174,7 @@ isMNull (MXArray a) = nullPtr == a
 
 -- |Tag for a generic array
 data MAny
--- |A generic, untyped (void) array, which must be cast (using 'Matlab.Array.castMXArray')
+-- |A generic, untyped (void) array, which must be cast (using 'Foreign.Matlab.Array.castMXArray')
 type MAnyArray = MXArray MAny
 
 -- |Tag for a NULL array

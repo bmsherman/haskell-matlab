@@ -1,7 +1,7 @@
 {-|
-  Safe MArray interface to "Matlab.Array".
+  Safe MArray interface to "Foreign.Matlab.Array".
 
-  An instance of 'Data.Array.MArray.MArray' for 'MXArray'.  Although array access can be done through this instance, arrays themselves must be created using 'mxMArray' along with one of the "Matlab.Array" create functions.
+  An instance of 'Data.Array.MArray.MArray' for 'MXArray'.  Although array access can be done through this instance, arrays themselves must be created using 'mxMArray' along with one of the "Foreign.Matlab.Array" create functions.
 -}
 module Foreign.Matlab.Array.MArray (
     MMXArray, mxMArray, unMmxArray
