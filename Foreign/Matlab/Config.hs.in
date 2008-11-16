@@ -1,6 +1,6 @@
 module Foreign.Matlab.Config (matlabPath, matlabBin, matlabArch, dllExtension) where
 
-import Distribution.Simple.Utils
+import Distribution.Simple.BuildPaths (dllExtension)
 
 matlabPath :: FilePath
 matlabBin :: FilePath
