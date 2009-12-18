@@ -33,7 +33,7 @@ Library
     Other-modules:	Foreign.Matlab.Config, Foreign.Matlab.Util, Foreign.Matlab.Internal
     Extensions:         ForeignFunctionInterface, TypeSynonymInstances, MultiParamTypeClasses, FunctionalDependencies, EmptyDataDecls, ScopedTypeVariables, LiberalTypeSynonyms, DeriveDataTypeable, FlexibleInstances, UndecidableInstances
     ghc-options:        -Wall -fno-warn-name-shadowing
-    extra-libraries:    mx
+    extra-libraries:    mx mex
     if flag(engine)
         extra-libraries: eng
     if flag(mcr)

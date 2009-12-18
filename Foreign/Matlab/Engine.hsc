@@ -38,7 +38,7 @@ foreign import ccall unsafe "&" engClose :: FunPtr (EnginePtr -> IO ()) -- CInt
 
 -- |Start Matlab server process.  It will automatically be closed down when no longer in use.
 newEngine :: Maybe FilePath -> IO Engine
-newEngine Nothing = newEngine (Just matlabBin)
+newEngine Nothing = newEngine (Just ("exec " ++ matlabBin))
 newEngine (Just bin) = do
   eng <- withCString bin engOpen
   if eng == nullPtr

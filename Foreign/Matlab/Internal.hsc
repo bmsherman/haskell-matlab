@@ -23,7 +23,7 @@ module Foreign.Matlab.Internal (
     MNull, mNullArray, isMNull,
     MCell(..),
     MStruct(..),
-    MFun,
+    MXFun, MFun,
     MWSize, MWIndex, MWSignedIndex
   ) where
 
