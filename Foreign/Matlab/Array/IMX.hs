@@ -191,7 +191,7 @@ iMXData = imxd where
   imxd (IMXStruct f a) = do
     let ((r0,_),(r1,_)) = bounds a
     m <- createStruct (mRangeSize (r0,r1)) f
-    zipWithM (\i -> mStructSetFields m (mOffset i) <=< mapM iMXData) [0..] (segment (length f) (elems a))
+    zipWithM_ (\i -> mStructSetFields m (mOffset i) <=< mapM iMXData) [0..] (segment (length f) (elems a))
     return $ anyMXArray m
   imxd (IMXLogical a)	= imxa a return
   imxd (IMXChar a)	= imxa a return

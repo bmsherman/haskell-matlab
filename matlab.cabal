@@ -8,7 +8,7 @@ Synopsis:	Matlab bindings and interface
 Description:	This package aims to provide a comprehensive interface to the MathWorks MATLAB(R) libraries and native data structures, including complete matrix access, MAT-format files, linking and execution of runtime libraries and engine.  Requires MATLAB for full functionality or an installed Matlab Component Runtime (MCR).  This has been tested with MATLAB 7.5-7.7 and might work with others.
 Category:	Foreign,Math
 build-type:	Custom
-tested-with:    GHC == 6.8.3
+tested-with:    GHC == 6.12.3
 extra-source-files: configure matlab.buildinfo.in Foreign/Matlab/Config.hs.in
 		src/Makefile.in src/hsmatlab.m src/hsmatlab.c src/hsc_sym.h
 		test/Makefile.in test/engine.hs test/runtime.hs test/generic.hs test/mtest.m test/hsmli.hs
@@ -24,7 +24,7 @@ Flag MCR
     default:		False
 
 Library
-    Build-depends:	base < 4, unix, array, filepath, Cabal
+    Build-depends:	base, unix, array, filepath, Cabal
     Exposed-modules:	Foreign.Matlab, Foreign.Matlab.Types, Foreign.Matlab.Array, Foreign.Matlab.Array.Auto, Foreign.Matlab.Array.MArray, Foreign.Matlab.Array.IMX, Foreign.Matlab.Array.Able, Foreign.Matlab.MAT
     if flag(engine)
         Exposed-modules: Foreign.Matlab.Engine

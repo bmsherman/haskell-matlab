@@ -14,7 +14,6 @@ module Foreign.Matlab.Runtime.Generic (
     mlGenericCapture
   ) where
 
-import Control.Monad
 import Foreign.C.String
 --import System.FilePath
 import Foreign.Matlab.Util
@@ -61,7 +60,7 @@ mlGenericSetVar :: MLGeneric -> String -> MXArray a -> IO ()
 mlGenericSetVar mlg v x = do
   b <- createRowVector "base"
   v <- createRowVector v
-  mlGenericFun mlg "assignin" [anyMXArray b,anyMXArray v,anyMXArray x] 0
+  [] <- mlGenericFun mlg "assignin" [anyMXArray b,anyMXArray v,anyMXArray x] 0
   freeMXArray v
   freeMXArray b
 

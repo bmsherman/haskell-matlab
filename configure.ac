@@ -1,5 +1,9 @@
 AC_INIT([Haskell Matlab interface], [0.1], [dylan@dylex.net])
 AC_CONFIG_SRCDIR([matlab.cabal])
+AC_ARG_WITH(compiler,
+	    [AC_HELP_STRING([--with-compiler=PATH], [])],
+	    [],
+	    [])
 AC_ARG_WITH(mcr,
 	    [AC_HELP_STRING([--with-mcr=PATH], [use Matlab Component Runtime installed in PATH @<:@default=no@:>@])],
 	    [],

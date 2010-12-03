@@ -21,7 +21,6 @@ import Foreign.C.String
 import Foreign.C.Error
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
 
 #include <mat.h>
 

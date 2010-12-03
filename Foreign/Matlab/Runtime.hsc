@@ -16,7 +16,6 @@ module Foreign.Matlab.Runtime (
     mlGenericFeval
   ) where
 
-import Control.Monad
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
@@ -28,7 +27,6 @@ import System.FilePath
 import Foreign.Matlab.Config
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
 
 #include "hsc_sym.h"
 #include "libhsmatlab.h"
