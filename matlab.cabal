@@ -24,7 +24,7 @@ Flag MCR
     default:		False
 
 Library
-    Build-depends:	base, unix, array, filepath, Cabal
+    Build-depends:	base == 4.*, unix, array, filepath, Cabal
     Exposed-modules:	Foreign.Matlab, Foreign.Matlab.Types, Foreign.Matlab.Array, Foreign.Matlab.Array.Auto, Foreign.Matlab.Array.MArray, Foreign.Matlab.Array.IMX, Foreign.Matlab.Array.Able, Foreign.Matlab.MAT
     if flag(engine)
         Exposed-modules: Foreign.Matlab.Engine
