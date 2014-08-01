@@ -1,0 +1,11 @@
+module Foreign.Matlab.Config (matlabPath, matlabBin, matlabArch, dllExtension) where
+
+import Distribution.Simple.BuildPaths (dllExtension)
+
+matlabPath :: FilePath
+matlabBin :: FilePath
+matlabArch :: String
+
+matlabPath = "@MATLAB_DIR@"
+matlabBin = "@MATLAB_BIN@"
+matlabArch = "@MATLAB_ARCH@"

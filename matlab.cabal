@@ -1,0 +1,43 @@
+Name:		matlab
+Version:	0.1
+Cabal-Version:  >= 1.6
+Author:		Dylan Simon
+Maintainer:     dylan@dylex.net
+License:        BSD3
+Synopsis:	Matlab bindings and interface
+Description:	This package aims to provide a comprehensive interface to the MathWorks MATLAB(R) libraries and native data structures, including complete matrix access, MAT-format files, linking and execution of runtime libraries and engine.  Requires MATLAB for full functionality or an installed Matlab Component Runtime (MCR).  This has been tested with MATLAB 7.5-7.7 and might work with others.
+Category:	Foreign,Math
+build-type:	Custom
+tested-with:    GHC == 6.8.3
+extra-source-files: configure matlab.buildinfo.in Foreign/Matlab/Config.hs.in
+		src/Makefile.in src/hsmatlab.m src/hsmatlab.c src/hsc_sym.h
+		test/Makefile.in test/engine.hs test/runtime.hs test/generic.hs test/mtest.m test/hsmli.hs
+extra-tmp-files: matlab.buildinfo Foreign/Matlab/Config.hs
+		src/Makefile
+
+Flag Engine
+    Description:	Enable Matlab engine (spawned eng process) support
+Flag Runtime
+    Description:	Enable Matlab runtime (linked library) support
+Flag MCR
+    Description:	Use installed Matlab Component Runtime instead of full Matlab
+    default:		False
+
+Library
+    Build-depends:	base < 4, unix, array, filepath, Cabal
+    Exposed-modules:	Foreign.Matlab, Foreign.Matlab.Types, Foreign.Matlab.Array, Foreign.Matlab.Array.Auto, Foreign.Matlab.Array.MArray, Foreign.Matlab.Array.IMX, Foreign.Matlab.Array.Able, Foreign.Matlab.MAT
+    if flag(engine)
+        Exposed-modules: Foreign.Matlab.Engine
+    if flag(runtime)
+        Exposed-modules: Foreign.Matlab.Runtime, Foreign.Matlab.Runtime.Generic
+    Other-modules:	Foreign.Matlab.Config, Foreign.Matlab.Util, Foreign.Matlab.Internal
+    Extensions:         ForeignFunctionInterface, TypeSynonymInstances, MultiParamTypeClasses, FunctionalDependencies, EmptyDataDecls, ScopedTypeVariables, LiberalTypeSynonyms, DeriveDataTypeable, FlexibleInstances, UndecidableInstances
+    ghc-options:        -Wall -fno-warn-name-shadowing
+    extra-libraries:    mx
+    if flag(engine)
+        extra-libraries: eng
+    if flag(mcr)
+        build-tools:	mcr
+    else
+        build-tools:	matlab
+    extra-lib-dirs:	src
