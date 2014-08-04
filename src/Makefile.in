@@ -10,7 +10,7 @@ libhsmatlab.so: hsmatlab.m hsmatlab.c
 	# stick our own call into the wrapper
 	cat hsmatlab.c >> $(basename $@).c
 	# build the library
-	$(MCC) $(MCCFLAGS) -W none -T link:lib $(basename $@).c
+	$(MCC) $(MCCFLAGS) -W lib:$(basename $@) -T link:lib $(basename $@).c
 	# 7.6: do what mcc tried to do before
 	-[ -f $@.post ] && cat $(basename $@).ctf >> $@ 
 

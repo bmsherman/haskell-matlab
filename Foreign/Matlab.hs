@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-implicit-prelude #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 {-|
   Bundles Matlab data structure and general-purpose routines.

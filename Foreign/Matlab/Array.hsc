@@ -19,19 +19,16 @@ module Foreign.Matlab.Array (
     mIndexOffset,
 
     -- * Array element access
-    MXArrayComponent,
+    MXArrayComponent (mxArrayGetOffset, mxArraySetOffset
+      , mxArrayGetOffsetList, mxArraySetOffsetList
+      , mxScalarGet, isMXScalar
+      , createMXArray, createMXScalar
+      , createColVector, createRowVector),
     castMXArray,
-    -- |raw array element access
-    mxArrayGetOffset, mxArraySetOffset,
-    -- |raw array list access
-    mxArrayGetOffsetList, mxArraySetOffsetList,
-    -- |array element access
+    -- | array element access
     mxArrayGet, mxArraySet,
-    -- |array list access
+    -- | array list access
     mxArrayGetList, mxArraySetList,
-    mxScalarGet, isMXScalar,
-    createMXArray, createMXScalar,
-    createColVector, createRowVector,
     mxArrayGetAll, mxArraySetAll,
     
     -- * Struct access

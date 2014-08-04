@@ -24,7 +24,7 @@ Flag MCR
     default:		False
 
 Library
-    Build-depends:	base < 4, unix, array, filepath, Cabal
+    Build-depends:	base, unix, array, filepath, Cabal
     Exposed-modules:	Foreign.Matlab, Foreign.Matlab.Types, Foreign.Matlab.Array, Foreign.Matlab.Array.Auto, Foreign.Matlab.Array.MArray, Foreign.Matlab.Array.IMX, Foreign.Matlab.Array.Able, Foreign.Matlab.MAT
     if flag(engine)
         Exposed-modules: Foreign.Matlab.Engine
@@ -33,11 +33,10 @@ Library
     Other-modules:	Foreign.Matlab.Config, Foreign.Matlab.Util, Foreign.Matlab.Internal
     Extensions:         ForeignFunctionInterface, TypeSynonymInstances, MultiParamTypeClasses, FunctionalDependencies, EmptyDataDecls, ScopedTypeVariables, LiberalTypeSynonyms, DeriveDataTypeable, FlexibleInstances, UndecidableInstances
     ghc-options:        -Wall -fno-warn-name-shadowing
-    extra-libraries:    mx
+    extra-libraries:    mx, mat
     if flag(engine)
         extra-libraries: eng
     if flag(mcr)
         build-tools:	mcr
     else
         build-tools:	matlab
-    extra-lib-dirs:	src

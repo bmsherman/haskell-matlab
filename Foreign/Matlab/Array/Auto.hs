@@ -13,7 +13,6 @@ module Foreign.Matlab.Array.Auto (
 import Foreign
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
 
 -- |A 'MXArray' that is automatically freed with 'Foreign.Matlab.Array.freeMXArray'
 newtype MXAuto a = MXAuto (ForeignPtr MXArrayType)

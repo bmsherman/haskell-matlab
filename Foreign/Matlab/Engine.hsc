@@ -22,7 +22,6 @@ import Foreign.C.Types
 import Data.List
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
 import Foreign.Matlab.Config
 
 #include <engine.h>
