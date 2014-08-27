@@ -6,6 +6,7 @@
 -}
 module Foreign.Matlab.Array.IMX (
     IMXData(..),
+    IMXArray,
     IMXArrayElem (imxConstr, imxArray),
 
     -- * Interface with "Foreign.Matlab.Array"
