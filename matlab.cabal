@@ -15,6 +15,10 @@ extra-source-files: configure matlab.buildinfo.in Foreign/Matlab/Config.hs.in
 extra-tmp-files: matlab.buildinfo Foreign/Matlab/Config.hs
 		src/Makefile
 
+Source-Repository head
+    Type:	darcs
+    Location:	http://hub.darcs.net/dylex/hsmatlab
+
 Flag Engine
     Description:	Enable Matlab engine (spawned eng process) support
 Flag Runtime
