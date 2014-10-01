@@ -1,0 +1,4 @@
+You will probably need to some arguments that point Cabal to your MATLAB installation.
+For example,
+
+cabal install --extra-lib-dirs="/usr/local/MATLAB/R2014a/bin/glnxa64/" --extra-include-dirs="/usr/local/MATLAB/R2014a/extern/include/"

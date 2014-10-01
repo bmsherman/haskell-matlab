@@ -271,19 +271,18 @@ createNumericArray :: MXClass -> Bool -> MWSize -> Ptr MWSize -> IO MXArrayPtr
 createNumericArray t c n s = mxCreateNumericArray n s (hs2mx t) (if c then (#const mxCOMPLEX) else (#const mxREAL))
 
 #let numarray t = "\
-foreign import ccall unsafe mxIs%1$s :: MXArrayPtr -> IO CBool\n\
-instance MXArrayComponent M%1$s where\n\
-  isMXArray a = boolC =.< withMXArray a mxIs%1$s\n\
-  createMXArray s = withNDims s (uncurry $ createNumericArray (mxClassOf (undefined :: M%1$s)) False) >>= mkMXArray\n\
+foreign import ccall unsafe mxIs%s :: MXArrayPtr -> IO CBool\n\
+instance MXArrayComponent M%s where\n\
+  isMXArray a = boolC =.< withMXArray a mxIs%s\n\
+  createMXArray s = withNDims s (uncurry $ createNumericArray (mxClassOf (undefined :: M%s)) False) >>= mkMXArray\n\
   \
 mxArrayGetOffset = arrayDataGet ;\
 mxArraySetOffset = arrayDataSet ;\
 mxArrayGetOffsetList = arrayDataGetList ;\
 mxArraySetOffsetList = arrayDataSetList\
   \n\
-instance MXArrayData MX%1$s M%1$s\
-", #t
---"
+instance MXArrayData MX%s M%s\
+", #t, #t, #t, #t, #t, #t
 
 foreign import ccall unsafe mxIsDouble :: MXArrayPtr -> IO CBool
 foreign import ccall unsafe mxCreateDoubleScalar :: MXDouble -> IO MXArrayPtr

@@ -1,5 +1,5 @@
 Name:                matlab
-Version:             0.1.1.1
+Version:             0.1.1.2
 Cabal-Version:       >= 1.10
 Author:              Dylan Simon
 Maintainer:          dylan@dylex.net
@@ -14,21 +14,15 @@ Description:         This package aims to provide a comprehensive interface to t
 Category:            Foreign,Math
 build-type:          Custom
 tested-with:         GHC == 7.8.3
-extra-source-files:  configure matlab.buildinfo.in
-                     src/Makefile.in src/hsmatlab.m src/hsmatlab.c src/hsc_sym.h
-                     test/Makefile.in test/engine.hs test/runtime.hs 
+extra-source-files:  src/Makefile src/hsmatlab.m src/hsmatlab.c src/hsc_sym.h
+                     test/Makefile test/engine.hs test/runtime.hs 
                      test/generic.hs test/mtest.m test/hsmli.hs
-extra-tmp-files:     matlab.buildinfo
-                     src/Makefile
 
 Flag Engine
   Description:       Enable Matlab engine (spawned eng process) support
   default:           True
 Flag Runtime
   Description:       Enable Matlab runtime (linked library) support
-  default:           False
-Flag MCR
-  Description:       Use installed Matlab Component Runtime instead of full Matlab
   default:           False
 
 Library
@@ -51,15 +45,14 @@ Library
                       FunctionalDependencies,
                       FlexibleInstances
   ghc-options:        -Wall -fno-warn-name-shadowing
+  include-dirs:       src/
   extra-libraries:    mx, mat
 
   if flag(runtime)
+      build-tools:     mcc
       Build-depends:   unix < 2.8
       Exposed-modules: Foreign.Matlab.Runtime, Foreign.Matlab.Runtime.Generic
 
   if flag(engine)
     Exposed-modules:  Foreign.Matlab.Engine
     extra-libraries:  eng
-
-  if !flag(mcr)
-    build-tools:      matlab

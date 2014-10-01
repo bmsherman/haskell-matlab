@@ -136,21 +136,20 @@ instance MType MXSingle MSingle where
   mx2hs = id
   mxClassOf _ = MXClassSingle
 
-#let inttype u, n = "\
-type MX%2$s%1$u = %3$s%1$u\n\
-type M%2$s%1$u = %3$s%1$u\n\
-instance MType MX%2$s%1$u M%2$s%1$u where { hs2mx = id ; mx2hs = id ; mxClassOf _ = MXClass%2$s%1$u }\
-", n, u ? "Uint" : "Int", u ? "Word" : "Int"
---"
+#let inttype u, v, n = "\
+type MX%s%u = %s%u\r\n\
+type M%s%u = %s%u\r\n\
+instance MType MX%s%u M%s%u where { hs2mx = id ; mx2hs = id ; mxClassOf _ = MXClass%s%u }\
+", u, n, v, n, u, n, v, n, u, n, u, n, u, n
 
-#inttype 0, 8
-#inttype 0, 16
-#inttype 0, 32
-#inttype 0, 64
-#inttype 1, 8
-#inttype 1, 16
-#inttype 1, 32
-#inttype 1, 64
+#inttype "Int", "Int", 8
+#inttype "Int", "Int", 16
+#inttype "Int", "Int", 32
+#inttype "Int", "Int", 64
+#inttype "Uint", "Word", 8
+#inttype "Uint", "Word", 16
+#inttype "Uint", "Word", 32
+#inttype "Uint", "Word", 64
 
 data MXArrayType
 type MXArrayPtr = Ptr MXArrayType

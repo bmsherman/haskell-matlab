@@ -19,7 +19,7 @@ module Foreign.Matlab.Runtime (
 import Foreign hiding (unsafePerformIO)
 import Foreign.C.String
 import Foreign.C.Types
-import System.Posix.DynamicLinker
+import System.Posix.DynamicLinker (DL, RTLDFlags (RTLD_NOW), dlopen, dlclose, dlsym)
 import Data.List
 import qualified Data.Char
 import Distribution.Simple.BuildPaths (dllExtension)

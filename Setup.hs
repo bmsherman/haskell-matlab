@@ -10,28 +10,12 @@ import Data.Maybe
 import System.Directory
 import System.FilePath
 
-defhooks = autoconfUserHooks
+defhooks = simpleUserHooks
 
-programs =
-  [ simpleProgram "matlab" 
-  , (simpleProgram "mcr") { programFindLocation =
-            \_ -> return (return Nothing) }
-  ]
+programs = [ simpleProgram "mcc" ]
 
 runtime desc = maybe False (elem ["Foreign","Matlab","Runtime"] 
   . map components . exposedModules) $ library desc
-
-postconf args flags desc build = do
-  confExists <- doesFileExist "configure"
-  unless confExists $ rawSystemExit verb "autoconf" []
-  postConf defhooks args flags{ configConfigureArgs = configConfigureArgs flags ++ confargs } desc build
-  where 
-    verb = fromFlag $ configVerbosity flags
-    confargs = ("--" ++ (if runtime desc then "enable" else "disable") ++ "-runtime") 
-      : map pconfarg pconf
-    pconfarg p = "--with-" ++ programId p ++ "=" ++ programPath p 
-      -- ++ " " ++ unwords (programArgs p)
-    pconf = mapMaybe (\p -> lookupProgram p (withPrograms build)) programs
 
 build desc binfo hooks flags = do
   when (runtime desc) $ 
@@ -50,15 +34,16 @@ install desc binfo hooks flags = do
       copyFileVerbose (fromFlag $ installVerbosity flags) 
 	("src" </> f) 
 	(libdir (absoluteInstallDirs desc binfo NoCopyDest) </> f))
-    ["libhsmatlab.so"{-,"libhsmatlab.ctf"-}]
+    ["libhsmatlab.so"]
 
 reg desc binfo hooks flags = do
   pwd <- getCurrentDirectory
   let
     desc' = desc{ library = fmap lm (library desc) }
     lm l = l { libBuildInfo = (libBuildInfo l)
-	{ ldOptions = ("-Wl,-rpath," ++ lib) : ldOptions (libBuildInfo l),
-          extraLibDirs = (pwd </> "src") : extraLibDirs (libBuildInfo l) } }
+	{ ldOptions = map ("-Wl,-rpath," ++) (lib : extraLibDirs (libBuildInfo l) )
+                      ++ ldOptions (libBuildInfo l),
+          extraLibDirs = (pwd </> "src") : extraLibDirs (libBuildInfo l)  } }
     lib
       | fromFlag $ regInPlace flags = pwd </> "src"
       | otherwise = libdir (absoluteInstallDirs desc binfo NoCopyDest)
@@ -66,7 +51,6 @@ reg desc binfo hooks flags = do
 
 hooks = defhooks {
     hookedPrograms = programs,
-    postConf = postconf,
     buildHook = build,
     cleanHook = clean,
     instHook = install,
