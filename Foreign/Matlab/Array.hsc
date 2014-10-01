@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables, UndecidableInstances #-}
 {-|
   Array access, including cell arrays and structures.
 

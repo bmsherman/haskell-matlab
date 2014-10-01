@@ -22,9 +22,10 @@ import Foreign.C.Types
 import System.Posix.DynamicLinker
 import Data.List
 import qualified Data.Char
+import Distribution.Simple.BuildPaths (dllExtension)
 import Control.Concurrent.MVar
-import System.FilePath
-import Foreign.Matlab.Config
+import System.FilePath (splitFileName, dropExtensions, extSeparator
+  , (<.>), (</>))
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
 

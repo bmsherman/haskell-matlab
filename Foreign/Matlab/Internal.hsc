@@ -30,7 +30,6 @@ module Foreign.Matlab.Internal (
 import Foreign
 import Foreign.C.Types
 import qualified Data.Char
-import Data.Typeable
 import Foreign.Matlab.Util
 
 #include <matrix.h>
@@ -178,18 +177,18 @@ data MAny
 type MAnyArray = MXArray MAny
 
 -- |Tag for a NULL array
-data MNull deriving (Typeable)
+data MNull 
 instance MType MNull MNull where mxClassOf _ = MXClassNull
 
 mNullArray :: MXArray MNull
 mNullArray = MXArray nullPtr
 
 -- |A wrapper for a member of a cell array, which itself simply any other array
-newtype MCell = MCell { mCell :: MAnyArray } deriving (Typeable)
+newtype MCell = MCell { mCell :: MAnyArray }
 instance MType MCell MCell where mxClassOf _ = MXClassCell
 
 -- |A single struct in an array, represented by an (ordered) list of key-value pairs
-newtype MStruct = MStruct { mStruct :: [(String,MAnyArray)] } deriving (Typeable)
+newtype MStruct = MStruct { mStruct :: [(String,MAnyArray)] }
 instance MType MStruct MStruct where mxClassOf _ = MXClassStruct
 
 type MXFun = CInt -> Ptr MXArrayPtr -> CInt -> Ptr MXArrayPtr -> IO ()
