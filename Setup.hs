@@ -41,9 +41,9 @@ reg desc binfo hooks flags = do
   let
     desc' = desc{ library = fmap lm (library desc) }
     lm l = l { libBuildInfo = (libBuildInfo l)
-	{ ldOptions = map ("-Wl,-rpath," ++) (lib : extraLibDirs (libBuildInfo l) )
+	{ ldOptions = map ("-Wl,-rpath," ++) (extraLibDirs (libBuildInfo l) )
                       ++ ldOptions (libBuildInfo l),
-          extraLibDirs = (pwd </> "src") : extraLibDirs (libBuildInfo l)  } }
+          extraLibDirs = lib : extraLibDirs (libBuildInfo l)  } }
     lib
       | fromFlag $ regInPlace flags = pwd </> "src"
       | otherwise = libdir (absoluteInstallDirs desc binfo NoCopyDest)
