@@ -1,8 +1,8 @@
 Name:                matlab
 Version:             0.1.1.2
 Cabal-Version:       >= 1.10
-Author:              Dylan Simon
-Maintainer:          dylan@dylex.net
+Author:              Dylan Simon, Ben Sherman
+Maintainer:          Ben Sherman <benmsherman@gmail.com>
 License:             BSD3
 Synopsis:            Matlab bindings and interface
 Description:         This package aims to provide a comprehensive interface to the 
@@ -10,7 +10,7 @@ Description:         This package aims to provide a comprehensive interface to t
                      complete matrix access, MAT-format files, linking and execution of 
                      runtime libraries and engine.  Requires MATLAB for full functionality 
                      or an installed Matlab Component Runtime (MCR). This has been tested
-                     with MATLAB 7.5-7.7 and might work with others.
+                     with MATLAB R2014a and might work with others.
 Category:            Foreign,Math
 build-type:          Custom
 tested-with:         GHC == 7.8.3
