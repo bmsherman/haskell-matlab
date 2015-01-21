@@ -22,6 +22,6 @@ cabal install --extra-lib-dirs="C:\Program Files\MATLAB\MATLAB Compiler Runtime\
 This package has been confirmed to work on the following systems:
 
 GHC version | cabal-install version | Operating System | MATLAB
-7.8.3         1.20.0.3                Ubuntu 14.10       MATLAB R2014a
-7.8.3         1.18.0.5                Windows 7          MCR R2014a
-
+------------|-----------------------|------------------|--------------
+7.8.3       | 1.20.0.3              | Ubuntu 14.10     | MATLAB R2014a
+7.8.3       | 1.18.0.5              | Windows 7        | MCR R2014a
