@@ -1,16 +1,24 @@
 Name:                matlab
-Version:             0.1.1.2
+Version:             0.1.1.3
 Cabal-Version:       >= 1.10
 Author:              Dylan Simon, Ben Sherman
 Maintainer:          Ben Sherman <benmsherman@gmail.com>
 License:             BSD3
+License-file:        LICENSE
 Synopsis:            Matlab bindings and interface
-Description:         This package aims to provide a comprehensive interface to the 
-                     MathWorks MATLAB(R) libraries and native data structures, including
-                     complete matrix access, MAT-format files, linking and execution of 
-                     runtime libraries and engine.  Requires MATLAB for full functionality 
-                     or an installed Matlab Component Runtime (MCR). This has been tested
-                     with MATLAB R2014a and might work with others.
+Description:
+  This package aims to provide a comprehensive interface to the 
+  MathWorks MATLAB(R) libraries and native data structures, including
+  complete matrix access, MAT-format files, linking and execution of 
+  runtime libraries and engine.  Requires MATLAB for full functionality 
+  or an installed Matlab Component Runtime (MCR). This has been tested
+  with MATLAB R2014a and might work with others.
+  .
+  [/Installation/]
+  You will probably need add some arguments that point Cabal to your MATLAB
+  installation. For example, on a Linux system, it may look like this:
+  .
+  > cabal install --extra-lib-dirs="/usr/local/MATLAB/R2014a/bin/glnxa64/" --extra-include-dirs="/usr/local/MATLAB/R2014a/extern/include/"
 Category:            Foreign,Math
 build-type:          Custom
 tested-with:         GHC == 7.8.3

@@ -177,18 +177,27 @@ type MAnyArray = MXArray MAny
 
 -- |Tag for a NULL array
 data MNull 
-instance MType MNull MNull where mxClassOf _ = MXClassNull
+instance MType MNull MNull where
+  hs2mx = id
+  mx2hs = id
+  mxClassOf _ = MXClassNull
 
 mNullArray :: MXArray MNull
 mNullArray = MXArray nullPtr
 
 -- |A wrapper for a member of a cell array, which itself simply any other array
 newtype MCell = MCell { mCell :: MAnyArray }
-instance MType MCell MCell where mxClassOf _ = MXClassCell
+instance MType MCell MCell where
+  hs2mx = id
+  mx2hs = id
+  mxClassOf _ = MXClassCell
 
 -- |A single struct in an array, represented by an (ordered) list of key-value pairs
 newtype MStruct = MStruct { mStruct :: [(String,MAnyArray)] }
-instance MType MStruct MStruct where mxClassOf _ = MXClassStruct
+instance MType MStruct MStruct where
+  hs2mx = id
+  mx2hs = id
+  mxClassOf _ = MXClassStruct
 
 type MXFun = CInt -> Ptr MXArrayPtr -> CInt -> Ptr MXArrayPtr -> IO ()
 -- |A Matlab function
@@ -208,6 +217,12 @@ instance MType MXFun MFun where
     map MXArray =.< peekArray no outp
   mxClassOf _ = MXClassFun
 
+#ifdef mingw32_HOST_OS
+type MWSize = Word32
+type MWIndex = Word32
+type MWSignedIndex = Int32
+#else
 type MWSize = #type mwSize
 type MWIndex = #type mwIndex
 type MWSignedIndex = #type mwSignedIndex
+#endif
