@@ -4,8 +4,7 @@
   In general, scalars convert to the obvious, and lists to row vectors.
 -}
 module Foreign.Matlab.Array.Able (
-    Matlabable,
-    toMatlab, fromMatlab,
+    Matlabable (toMatlab, fromMatlab),
     withMatlabArray, fromMatlabArray
   ) where
 

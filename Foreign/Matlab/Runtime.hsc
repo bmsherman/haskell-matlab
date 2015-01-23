@@ -16,19 +16,20 @@ module Foreign.Matlab.Runtime (
     mlGenericFeval
   ) where
 
-import Control.Monad
-import Foreign
+import Foreign hiding (unsafePerformIO)
 import Foreign.C.String
 import Foreign.C.Types
-import System.Posix.DynamicLinker
+import System.Posix.DynamicLinker (DL, RTLDFlags (RTLD_NOW), dlopen, dlclose, dlsym)
 import Data.List
 import qualified Data.Char
+import Distribution.Simple.BuildPaths (dllExtension)
 import Control.Concurrent.MVar
-import System.FilePath
-import Foreign.Matlab.Config
+import System.FilePath (splitFileName, dropExtensions, extSeparator
+  , (<.>), (</>))
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
+
+import System.IO.Unsafe (unsafePerformIO)
 
 #include "hsc_sym.h"
 #include "libhsmatlab.h"
@@ -65,16 +66,16 @@ initialize = initializeApp mclInitializeApplication
 terminate = terminateApp mclTerminateApplication
 -}
 
-foreign import ccall "dynamic" mkInitApp :: FunPtr a -> InitApp
-foreign import ccall "dynamic" mkTermApp :: FunPtr a -> TermApp
+foreign import ccall "dynamic" mkInitApp :: FunPtr InitApp -> InitApp
+foreign import ccall "dynamic" mkTermApp :: FunPtr TermApp -> TermApp
 
 type InitFun = IO CBool
 type FiniFun = IO ()
 type MLXFun = CInt -> Ptr MXArrayPtr -> CInt -> Ptr MXArrayPtr -> IO CBool
 
-foreign import ccall "dynamic" mkInitFun :: FunPtr a -> InitFun
-foreign import ccall "dynamic" mkFiniFun :: FunPtr a -> FiniFun
-foreign import ccall "dynamic" mkMLXFun :: FunPtr a -> MLXFun
+foreign import ccall "dynamic" mkInitFun :: FunPtr InitFun -> InitFun
+foreign import ccall "dynamic" mkFiniFun :: FunPtr FiniFun -> FiniFun
+foreign import ccall "dynamic" mkMLXFun :: FunPtr MLXFun -> MLXFun
 
 -- |A Matlab library handle
 data MLibrary = MLibrary { mlName :: String, mlDL :: DL }
@@ -129,7 +130,7 @@ mLibraryCall ml f arg no = do
   fun <- mLibraryFun ml f
   fun arg no
 
-foreign import ccall "dynamic" mkFeval :: FunPtr a -> CString -> MLXFun
+foreign import ccall "dynamic" mkFeval :: FunPtr (CString -> MLXFun) -> CString -> MLXFun
 
 -- |Internal use only.  See "Foreign.Matlab.Runtime.Generic"
 mlGenericFeval :: MLibrary -> IO (CString -> MFun)

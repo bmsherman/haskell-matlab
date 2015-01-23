@@ -6,7 +6,8 @@
 -}
 module Foreign.Matlab.Array.IMX (
     IMXData(..),
-    IMXArrayElem,
+    IMXArray,
+    IMXArrayElem (imxConstr, imxArray),
 
     -- * Interface with "Foreign.Matlab.Array"
     imxData, iMXData,
@@ -16,7 +17,6 @@ module Foreign.Matlab.Array.IMX (
 
     -- * Construction and access
     imxSize,
-    imxConstr, imxArray,
     listIMX, scalarIMX,
     imxList, imxScalar,
     listIMXStruct,
@@ -27,7 +27,6 @@ import Control.Monad
 import Data.Array.IArray
 import Data.Complex
 import Data.List
-import Text.Show
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
 import Foreign.Matlab.Types
@@ -191,7 +190,7 @@ iMXData = imxd where
   imxd (IMXStruct f a) = do
     let ((r0,_),(r1,_)) = bounds a
     m <- createStruct (mRangeSize (r0,r1)) f
-    zipWithM (\i -> mStructSetFields m (mOffset i) <=< mapM iMXData) [0..] (segment (length f) (elems a))
+    zipWithM_ (\i -> mStructSetFields m (mOffset i) <=< mapM iMXData) [0..] (segment (length f) (elems a))
     return $ anyMXArray m
   imxd (IMXLogical a)	= imxa a return
   imxd (IMXChar a)	= imxa a return

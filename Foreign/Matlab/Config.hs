@@ -1,1 +1,0 @@
--- FIXME: This file needs to be regenerated from Config.hs.in by configure, but is required to exist for sdist.

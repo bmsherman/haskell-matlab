@@ -22,8 +22,6 @@ import Foreign.C.Types
 import Data.List
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
-import Foreign.Matlab.Config
 
 #include <engine.h>
 
@@ -37,9 +35,8 @@ foreign import ccall unsafe engOpen :: CString -> IO EnginePtr
 foreign import ccall unsafe "&" engClose :: FunPtr (EnginePtr -> IO ()) -- CInt
 
 -- |Start Matlab server process.  It will automatically be closed down when no longer in use.
-newEngine :: Maybe FilePath -> IO Engine
-newEngine Nothing = newEngine (Just matlabBin)
-newEngine (Just bin) = do
+newEngine :: FilePath -> IO Engine
+newEngine bin = do
   eng <- withCString bin engOpen
   if eng == nullPtr
     then fail "engOpen"

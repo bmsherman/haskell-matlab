@@ -1,5 +1,5 @@
-MCC=@MATLAB_MCC@
-MCCFLAGS=@MCCFLAGS@
+MCC=mcc
+MCCFLAGS=
 
 libhsmatlab.so: hsmatlab.m hsmatlab.c
 	rm -f $@ $@.post

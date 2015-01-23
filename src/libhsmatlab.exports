@@ -1,0 +1,5 @@
+libhsmatlabInitialize
+libhsmatlabInitializeWithHandlers
+libhsmatlabTerminate
+libhsmatlabPrintStackTrace
+

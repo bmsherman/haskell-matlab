@@ -30,7 +30,6 @@ module Foreign.Matlab.Internal (
 import Foreign
 import Foreign.C.Types
 import qualified Data.Char
-import Data.Typeable
 import Foreign.Matlab.Util
 
 #include <matrix.h>
@@ -137,21 +136,20 @@ instance MType MXSingle MSingle where
   mx2hs = id
   mxClassOf _ = MXClassSingle
 
-#let inttype u, n = "\
-type MX%2$s%1$u = %3$s%1$u\n\
-type M%2$s%1$u = %3$s%1$u\n\
-instance MType MX%2$s%1$u M%2$s%1$u where { hs2mx = id ; mx2hs = id ; mxClassOf _ = MXClass%2$s%1$u }\
-", n, u ? "Uint" : "Int", u ? "Word" : "Int"
---"
+#let inttype u, v, n = "\
+type MX%s%u = %s%u\r\n\
+type M%s%u = %s%u\r\n\
+instance MType MX%s%u M%s%u where { hs2mx = id ; mx2hs = id ; mxClassOf _ = MXClass%s%u }\
+", u, n, v, n, u, n, v, n, u, n, u, n, u, n
 
-#inttype 0, 8
-#inttype 0, 16
-#inttype 0, 32
-#inttype 0, 64
-#inttype 1, 8
-#inttype 1, 16
-#inttype 1, 32
-#inttype 1, 64
+#inttype "Int", "Int", 8
+#inttype "Int", "Int", 16
+#inttype "Int", "Int", 32
+#inttype "Int", "Int", 64
+#inttype "Uint", "Word", 8
+#inttype "Uint", "Word", 16
+#inttype "Uint", "Word", 32
+#inttype "Uint", "Word", 64
 
 data MXArrayType
 type MXArrayPtr = Ptr MXArrayType
@@ -178,19 +176,28 @@ data MAny
 type MAnyArray = MXArray MAny
 
 -- |Tag for a NULL array
-data MNull deriving (Typeable)
-instance MType MNull MNull where mxClassOf _ = MXClassNull
+data MNull 
+instance MType MNull MNull where
+  hs2mx = id
+  mx2hs = id
+  mxClassOf _ = MXClassNull
 
 mNullArray :: MXArray MNull
 mNullArray = MXArray nullPtr
 
 -- |A wrapper for a member of a cell array, which itself simply any other array
-newtype MCell = MCell { mCell :: MAnyArray } deriving (Typeable)
-instance MType MCell MCell where mxClassOf _ = MXClassCell
+newtype MCell = MCell { mCell :: MAnyArray }
+instance MType MCell MCell where
+  hs2mx = id
+  mx2hs = id
+  mxClassOf _ = MXClassCell
 
 -- |A single struct in an array, represented by an (ordered) list of key-value pairs
-newtype MStruct = MStruct { mStruct :: [(String,MAnyArray)] } deriving (Typeable)
-instance MType MStruct MStruct where mxClassOf _ = MXClassStruct
+newtype MStruct = MStruct { mStruct :: [(String,MAnyArray)] }
+instance MType MStruct MStruct where
+  hs2mx = id
+  mx2hs = id
+  mxClassOf _ = MXClassStruct
 
 type MXFun = CInt -> Ptr MXArrayPtr -> CInt -> Ptr MXArrayPtr -> IO ()
 -- |A Matlab function
@@ -210,6 +217,12 @@ instance MType MXFun MFun where
     map MXArray =.< peekArray no outp
   mxClassOf _ = MXClassFun
 
+#ifdef mingw32_HOST_OS
+type MWSize = Word32
+type MWIndex = Word32
+type MWSignedIndex = Int32
+#else
 type MWSize = #type mwSize
 type MWIndex = #type mwIndex
 type MWSignedIndex = #type mwSignedIndex
+#endif

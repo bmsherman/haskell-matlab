@@ -21,7 +21,6 @@ import Foreign.C.String
 import Foreign.C.Error
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
 
 #include <mat.h>
 
@@ -102,13 +101,14 @@ matLoad file = do
   matClose mat
   return vars
   where
-    load m =
-      alloca $ \n -> do
+    load m = alloca $ \n -> do
       a <- matGetNextVariable m n
-      if a == nullPtr then return [] else do
-      a <- mkMXArray a
-      n <- peek n >>= peekCString
-      ((n,a) :) =.< load m
+      if a == nullPtr 
+	then return [] 
+	else do
+	  a <- mkMXArray a
+	  n <- peek n >>= peekCString
+	  ((n,a) :) =.< load m
 
 -- |Write all the variables to a new MAT file
 matSave :: FilePath -> [(String,MXArray a)] -> IO ()
