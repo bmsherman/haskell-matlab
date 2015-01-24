@@ -28,7 +28,6 @@ import System.FilePath (splitFileName, dropExtensions, extSeparator
   , (<.>), (</>))
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
-
 import System.IO.Unsafe (unsafePerformIO)
 
 #include "hsc_sym.h"
