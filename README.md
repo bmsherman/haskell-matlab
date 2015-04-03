@@ -14,7 +14,7 @@ cabal install --extra-lib-dirs="/usr/local/MATLAB/R2014a/bin/glnxa64/" --extra-i
 
 On a Windows system with the MATLAB Compiler Runtime, it might look like this:
 ```
-cabal install --extra-lib-dirs="C:\Program Files\MATLAB\MATLAB Compiler Runtime\v83\extern\include" --extra-lib-dirs="C:\Program Files\MATLAB\MATLAB Compiler Runtime\v83\bin\win64"
+cabal install --extra-include-dirs="C:\Program Files\MATLAB\MATLAB Compiler Runtime\v83\extern\include" --extra-lib-dirs="C:\Program Files\MATLAB\MATLAB Compiler Runtime\v83\bin\win64"
 ```
 
 ## Test platforms
