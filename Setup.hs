@@ -14,26 +14,26 @@ defhooks = simpleUserHooks
 
 programs = [ simpleProgram "mcc" ]
 
-runtime desc = maybe False (elem ["Foreign","Matlab","Runtime"] 
+runtime desc = maybe False (elem ["Foreign","Matlab","Runtime"]
   . map components . exposedModules) $ library desc
 
 build desc binfo hooks flags = do
-  when (runtime desc) $ 
+  when (runtime desc) $
     rawSystemExit (fromFlag $ buildVerbosity flags) "make" ["-Csrc"]
   buildHook defhooks desc binfo hooks flags
 
 clean desc binfo hooks flags = do
   makeExists <- doesFileExist "src/Makefile"
-  when makeExists $ 
+  when makeExists $
     rawSystemExit (fromFlag $ cleanVerbosity flags) "make" ["-Csrc", "clean"]
   cleanHook defhooks desc binfo hooks flags
 
 install desc binfo hooks flags = do
   instHook defhooks desc binfo hooks flags
-  when (runtime desc) $ mapM_ (\f -> 
-      copyFileVerbose (fromFlag $ installVerbosity flags) 
-	("src" </> f) 
-	(libdir (absoluteInstallDirs desc binfo NoCopyDest) </> f))
+  when (runtime desc) $ mapM_ (\f ->
+      copyFileVerbose (fromFlag $ installVerbosity flags)
+        ("src" </> f)
+        (libdir (absoluteInstallDirs desc binfo NoCopyDest) </> f))
     ["libhsmatlab.so"]
 
 reg desc binfo hooks flags = do
@@ -41,7 +41,7 @@ reg desc binfo hooks flags = do
   let
     desc' = desc{ library = fmap lm (library desc) }
     lm l = l { libBuildInfo = (libBuildInfo l)
-	{ ldOptions = map ("-Wl,-rpath," ++) (extraLibDirs (libBuildInfo l) )
+        { ldOptions = map ("-Wl,-rpath," ++) (extraLibDirs (libBuildInfo l) )
                       ++ ldOptions (libBuildInfo l),
           extraLibDirs = lib : extraLibDirs (libBuildInfo l)  } }
     lib

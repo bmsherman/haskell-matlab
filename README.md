@@ -25,3 +25,23 @@ GHC version | cabal-install version | Operating System | MATLAB
 ------------|-----------------------|------------------|--------------
 7.8.3       | 1.20.0.3              | Ubuntu 14.10     | MATLAB R2014a
 7.8.3       | 1.18.0.5              | Windows 7        | MCR R2014a
+
+
+## Stack notes
+
+(omit the `--nix` argument if not using Nix or NixOS)
+
+```
+$ stack --extra-lib-dirs=$MATLAB_PATH/bin/glnxa64 --extra-include-dirs=$MATLAB_PATH/extern/include --nix build
+```
+
+## Nix notes
+
+You can load a MATLAB nix shell such as the one found in `shell.nix` - feel free
+to modify it to add other packages for your particular project.
+
+
+Confirm it is working by running `matlab -glnxa64`.
+
+Build the project using `stack --nix build`.
+
