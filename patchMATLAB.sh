@@ -44,15 +44,3 @@ for f in ${CC_FILES[*]}; do
   substituteInPlace $f\
 	--replace "CC='gcc'" "CC='${matlabGcc}/bin/gcc'"
 done
-
-# # Expose select MATLAB libraries to LD_LIBRARY_PATH
-
-# MATLAB_SO_FILES=(
-#   libmx.so
-#   libmat.so
-#   libeng.so
-# )
-# mkdir -p $MATLAB_LIB_SELCT
-# for f in ${MATLAB_SO_FILES[*]}; do
-#   ln -sfn $MATLAB_PATH/bin/glnxa64/$f $MATLAB_LIB_SELCT/$f
-# done

@@ -31,7 +31,7 @@ module Foreign.Matlab.Array (
     -- | array list access
     mxArrayGetList, mxArraySetList,
     mxArrayGetAll, mxArraySetAll,
-    
+
     -- * Struct access
     -- |Structs in Matlab are always arrays, and so can be accessed using most array accessors.
     -- |However, the modification functions such as 'mxArraySet' are not implemented because they could disrupt field data in the entire struct array, and so some specialized functions are necessary.
@@ -66,7 +66,7 @@ anyMXArray a = unsafeCastMXArray a
 type MNullArray = MXArray MNull
 -- |Safely cast a generic array to a NULL array, or return Nothing if the array is not NULL
 castMNull :: MAnyArray -> MIO (Maybe MNullArray)
-castMNull a 
+castMNull a
   | isMNull a = return $ Just (unsafeCastMXArray a)
   | otherwise = return Nothing
 
@@ -209,8 +209,8 @@ castMXArray a
       y <- isMXArray b
       return $ if y then Just b else Nothing
       where
-	b :: MXArray a
-	b = unsafeCastMXArray a
+        b :: MXArray a
+        b = unsafeCastMXArray a
 
 foreign import ccall unsafe mxGetData :: MXArrayPtr -> IO (Ptr a)
 
@@ -327,8 +327,8 @@ foreign import ccall unsafe mxIsObject :: MXArrayPtr -> IO CBool
 foreign import ccall unsafe mxCreateStructArray :: MWSize -> Ptr MWSize -> CInt -> Ptr CString -> IO MXArrayPtr
 -- |Create an N-Dimensional structure array having the specified fields; initialize all values to 'MNullArray'
 createStruct :: MSize -> [String] -> MIO MStructArray
-createStruct s f = 
-  withNDims s (\(nd,d) -> 
+createStruct s f =
+  withNDims s (\(nd,d) ->
     mapWithArrayLen withCString f (\(f,nf) ->
       mxCreateStructArray nd d (ii nf) f))
   >>= mkMXArray

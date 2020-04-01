@@ -43,5 +43,5 @@ to modify it to add other packages for your particular project.
 
 Confirm it is working by running `matlab -glnxa64`.
 
-Build the project using `stack --nix build`.
+Build the project using the build command above under "Stack notes".
 
