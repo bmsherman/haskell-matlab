@@ -41,7 +41,12 @@ You can load a MATLAB nix shell such as the one found in `shell.nix` - feel free
 to modify it to add other packages for your particular project.
 
 
-Confirm it is working by running `matlab -glnxa64`.
+Confirm it is working by running `matlab -glnxa64 -nodisplay -nosplash`.
 
 Build the project using the build command above under "Stack notes".
 
+## Running tests
+
+```
+LD_LIBRARY_PATH=$MATLAB_PATH/bin/glnxa64 /home/bebarker/workspace/haskell-matlab/.stack-work/install/x86_64-linux-nix/24c5769e9013838d87aa76fb4cdd10a09798b6904a6faa380de6fe6949e2c952/8.6.5/bin/matlab-engine-test
+```

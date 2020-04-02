@@ -10,15 +10,17 @@ let
   matlabPath = "/opt/MATLAB/${matlabVersion}";
   matlabLibPath = "${matlabPath}/bin/glnxa64";
 in
-stdenv.mkDerivation {
+haskell.lib.buildStackProject {
   name = "impureMatlabEnv";
   inherit matlabGcc;
+  inherit ghc;
   buildInputs = [
     matlabGcc
     makeWrapper
     zlib
     # for Haskell:
     cabal-install
+    # ghc # for tests
     gmp
     stack
   ];
