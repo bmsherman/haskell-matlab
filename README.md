@@ -53,7 +53,22 @@ Note that this requires shell program `csh` to be installed at `/bin/csh`.
 This is a requirement of the MATLAB Engine API.
 
 
-### All tests (not working yet)
+### All tests
+
+#### Option 1
+
+After installing, you can run a particular exectuable (e.g. `matlab-engine-test`) using the `runHSMat.sh`
+script. You need to make sure `MATLAB_PATH` is set correctly or passed in.
+
+```
+stack --nix install
+./runHSMat.sh matlab-engine-test
+
+```
+
+
+#### Option 2  (not working yet)
+
 
 ```
 LD_LIBRARY_PATH=$MATLAB_PATH/bin/glnxa64 /home/bebarker/workspace/haskell-matlab/.stack-work/install/x86_64-linux-nix/24c5769e9013838d87aa76fb4cdd10a09798b6904a6faa380de6fe6949e2c952/8.6.5/bin/matlab-engine-test
