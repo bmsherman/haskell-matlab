@@ -47,6 +47,22 @@ Build the project using the build command above under "Stack notes".
 
 ## Running tests
 
+### Engine test
+
+Note that this requires shell program `csh` to be installed at `/bin/csh`.
+This is a requirement of the MATLAB Engine API.
+
+
+### All tests (not working yet)
+
 ```
 LD_LIBRARY_PATH=$MATLAB_PATH/bin/glnxa64 /home/bebarker/workspace/haskell-matlab/.stack-work/install/x86_64-linux-nix/24c5769e9013838d87aa76fb4cdd10a09798b6904a6faa380de6fe6949e2c952/8.6.5/bin/matlab-engine-test
 ```
+
+
+# Usage
+
+## Engine API
+
+See [MATLAB Engine API for C](https://www.mathworks.com/help/matlab/calling-matlab-engine-from-c-programs-1.html)
+for details.
