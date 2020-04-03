@@ -18,7 +18,13 @@ engineTests = runEngineTests ""
 runEngineTests :: String -> IO ()
 runEngineTests host = do
   eng <- newEngine host
-  putStrLn "ready"
+  cosOfPi eng
+  -- TODO: use local function call
+  -- TODO: execute local script
+
+cosOfPi :: Engine -> IO ()
+cosOfPi eng = do
+  putStrLn "\n-- cos pi --"
   x <- createMXScalar (pi :: MDouble)
   [y] <- engineEvalFun eng "cos" [EvalArray x] 1
   mxArrayClass y >>= print
