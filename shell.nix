@@ -55,4 +55,4 @@ haskell.lib.buildStackProject {
 }
 
 # Note this will break nix commands inside the shell:
-export LD_LIBRARY_PATH=$MATLAB_PATH/bin/glnxa64:$MATLAB_PATH/sys/os/glnxa64:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=$MATLAB_PATH/bin/glnxa64:$MATLAB_PATH/sys/os/glnxa64:$LD_LIBRARY_PATH

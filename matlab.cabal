@@ -107,3 +107,15 @@ executable matlab-engine-test
     , turtle >= 1.5
   default-language: Haskell2010
   extra-libraries: eng, mx, mat
+
+executable haskell-hello
+  main-is: SpecHello.hs
+  other-modules:
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >= 4 && <5
+    , filepath
+  default-language: Haskell2010
+  extra-libraries:
