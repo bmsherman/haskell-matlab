@@ -19,7 +19,7 @@ haskell.lib.buildStackProject {
     makeWrapper
     zlib
     # for Haskell:
-    cabal-install
+    # cabal-install
     # ghc # for tests
     gmp
     stack
