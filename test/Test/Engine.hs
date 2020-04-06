@@ -17,7 +17,9 @@ engineTests = runEngineTests ""
 
 runEngineTests :: String -> IO ()
 runEngineTests host = do
+  putStrLn " -- Starting engine --"
   eng <- newEngine host
+  putStrLn " -- Engine created --"
   cosOfPi eng
   -- TODO: use local function call
   -- TODO: execute local script
