@@ -18,7 +18,7 @@ import           System.Environment
 import           Test.UtilTemplate
 
 getRepoDirStatic :: String
-getRepoDirStatic = $(join $ lift <$> toFilePath <$> (runIO $ getRepoDir))
+getRepoDirStatic = $(lift . toFilePath =<< runIO getRepoDir)
 
 
 -- fromRightTst :: Either a b -> b
