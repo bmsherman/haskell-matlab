@@ -14,15 +14,15 @@ haskell.lib.buildStackProject {
   name = "impureMatlabEnv";
   inherit matlabGcc;
   inherit ghc;
+  matlabPath = matlabPath;
+  dontUnpack = true;
   buildInputs = [
     matlabGcc
     makeWrapper
     zlib
     # for Haskell:
-    # cabal-install
-    # ghc # for tests
     gmp
-    stack
+    # stack
   ];
 
   libPath = stdenv.lib.makeLibraryPath [
