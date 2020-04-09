@@ -9,10 +9,9 @@ let
 in
 haskell.lib.buildStackProject {
   name = "impureMatlabEnv";
-  # inherit deps;
   dontUnpack = true;
-  # buildInputs = deps.buildInputs;
-  # libPath = deps.libPath;
+  buildInputs = deps.buildInputs;
+  libPath = deps.libPath;
   src = null;
   shellHook = ''
     export MATLAB_PATH=${deps.matlabPath}
