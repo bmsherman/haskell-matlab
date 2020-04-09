@@ -35,10 +35,16 @@ the `matlab` shell script should instead be modified to hardcode `ARCH` as
 `glnxa64`. Aside from convenience, certain APIs like the MATLAB Engine API
 will not always work otherwise (you will likely see an error involving `trap`).
 
-These instructions assume `stack` is to be used in a Nix environment.
+These instructions assume `stack` is to be used in a Nix environment. If you don't already
+have stack in our environment you can add it, or likely you can just run `nix-shell deps.nix`
+to load stack and other dependencies.
 
 You can load a MATLAB nix shell such as the one found in `shell.nix` - feel free
-to modify it to add other packages for your particular project.
+to modify it to add other packages for your particular project; in this case `shell.nix`
+depends on `deps.nix`. What is important to keep in mind about `shell.nix` is that it is
+configured to be used by `stack` in the `stack.yaml` file, but you could also run
+`nix-shell shell.nix` (or simply `nix-shell` in the current directory) to load an environment
+in which you could run MATLAB as well.
 
 Confirm it is working by running `matlab -nodisplay -nosplash`.
 

@@ -5,48 +5,17 @@
 
 with import <nixpkgs> {};
 let
-  matlabGcc = gcc49;
-  matlabVersion = "R2017a";
-  matlabPath = "/opt/MATLAB/${matlabVersion}";
-  matlabLibPath = "${matlabPath}/bin/glnxa64";
+  deps = (import ./deps.nix);
 in
 haskell.lib.buildStackProject {
   name = "impureMatlabEnv";
-  inherit matlabGcc;
-  inherit ghc;
-  matlabPath = matlabPath;
+  # inherit deps;
   dontUnpack = true;
-  buildInputs = [
-    matlabGcc
-    makeWrapper
-    zlib
-    # for Haskell:
-    gmp
-    # stack
-  ];
-
-  libPath = stdenv.lib.makeLibraryPath [
-    gmp
-    mesa_glu
-    ncurses
-    pam
-    xorg.libxcb
-    xorg.libXi
-    xorg.libXext
-    xorg.libXmu
-    xorg.libXp
-    xorg.libXpm
-    xorg.libXrandr
-    xorg.libXrender
-    xorg.libXt
-    xorg.libXtst
-    xorg.libXxf86vm
-    xorg.libX11
-    zlib
-  ];
+  # buildInputs = deps.buildInputs;
+  # libPath = deps.libPath;
   src = null;
   shellHook = ''
-    export MATLAB_PATH=${matlabPath}
+    export MATLAB_PATH=${deps.matlabPath}
     export PATH=$PATH:$MATLAB_PATH/bin
 
     source ${./patchMATLAB.sh}
