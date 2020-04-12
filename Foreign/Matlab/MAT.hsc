@@ -39,7 +39,7 @@ data MATMode = MATRead | MATWrite | MATUpdate
 
 -- |Open a MAT-file using mode.
 matOpen :: FilePath -> MATMode -> IO MATFile
-matOpen f m = do 
+matOpen f m = do
   throwErrnoIfNull ("matOpen: " ++ f)
     (withCString f (withCString (ms m) . matOpen_c))
     >.= MATFile
@@ -55,7 +55,7 @@ matClose m = throwErrnoIfMinus1_ "matClose" $ withMATFile m matClose_c
 foreign import ccall unsafe matPutVariable :: MATFilePtr -> CString -> MXArrayPtr -> IO CInt
 foreign import ccall unsafe matPutVariableAsGlobal :: MATFilePtr -> CString -> MXArrayPtr -> IO CInt
 -- |Write array value with the specified name to the MAT-file, deleting any previously existing variable with that name in the MAT-file.
-matSet :: MATFile 
+matSet :: MATFile
   -> Bool -- ^ Global. If true, the variable will be written such that when the MATLAB LOAD command loads the variable, it will automatically place it in the global workspace.
   -> String -> MXArray a -> IO ()
 matSet m g n v = do
@@ -66,7 +66,7 @@ foreign import ccall unsafe matGetVariable :: MATFilePtr -> CString -> IO MXArra
 -- |Read the array value for the specified variable name from a MAT-file.
 matGet :: MATFile -> String -> IO (Maybe MAnyArray)
 matGet m n = do
-  a <- withMATFile m (withCString n . matGetVariable) 
+  a <- withMATFile m (withCString n . matGetVariable)
   if a == nullPtr
     then return Nothing
     else Just =.< mkMXArray a
@@ -103,12 +103,12 @@ matLoad file = do
   where
     load m = alloca $ \n -> do
       a <- matGetNextVariable m n
-      if a == nullPtr 
-	then return [] 
-	else do
-	  a <- mkMXArray a
-	  n <- peek n >>= peekCString
-	  ((n,a) :) =.< load m
+      if a == nullPtr
+        then return []
+        else do
+          a <- mkMXArray a
+          n <- peek n >>= peekCString
+          ((n,a) :) =.< load m
 
 -- |Write all the variables to a new MAT file
 matSave :: FilePath -> [(String,MXArray a)] -> IO ()

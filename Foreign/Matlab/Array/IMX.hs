@@ -36,22 +36,22 @@ type IMXArray a = Array MIndex a
 -- |The basic immutable (functional) representation of Matlab data structures, representing a generic 'MXArray'
 data IMXData =
     IMXNull
-  | IMXCell	(IMXArray IMXData)
+  | IMXCell     (IMXArray IMXData)
   | IMXStruct   [String] (Array (MIndex,Int) IMXData) -- ^ field name list and array mapping (index,field index) to values
-  | IMXLogical	(IMXArray MLogical)
-  | IMXChar	(IMXArray MChar)
-  | IMXDouble	(IMXArray MDouble)
-  | IMXSingle	(IMXArray MSingle)
-  | IMXInt8	(IMXArray MInt8)
-  | IMXUint8	(IMXArray MUint8)
-  | IMXInt16	(IMXArray MInt16)
-  | IMXUint16	(IMXArray MUint16)
-  | IMXInt32	(IMXArray MInt32)
-  | IMXUint32	(IMXArray MUint32)
-  | IMXInt64	(IMXArray MInt64)
-  | IMXUint64	(IMXArray MUint64)
-  | IMXComplexDouble	(IMXArray (MComplex MDouble))
-  | IMXComplexSingle	(IMXArray (MComplex MSingle))
+  | IMXLogical  (IMXArray MLogical)
+  | IMXChar     (IMXArray MChar)
+  | IMXDouble   (IMXArray MDouble)
+  | IMXSingle   (IMXArray MSingle)
+  | IMXInt8     (IMXArray MInt8)
+  | IMXUint8    (IMXArray MUint8)
+  | IMXInt16    (IMXArray MInt16)
+  | IMXUint16   (IMXArray MUint16)
+  | IMXInt32    (IMXArray MInt32)
+  | IMXUint32   (IMXArray MUint32)
+  | IMXInt64    (IMXArray MInt64)
+  | IMXUint64   (IMXArray MUint64)
+  | IMXComplexDouble    (IMXArray (MComplex MDouble))
+  | IMXComplexSingle    (IMXArray (MComplex MSingle))
   | IMXObject   String IMXData -- ^ object class name and object data, currently always IMXStruct
   deriving (Eq)
 
@@ -148,28 +148,28 @@ imxData a = do
   imxc t c where
   
   imxc :: MXClass -> Bool -> IO IMXData
-  imxc MXClassNull _		= return IMXNull
-  imxc MXClassCell False	= IMXCell	=.< imxa (imxData . mCell)
-  imxc MXClassStruct False	= do
+  imxc MXClassNull _            = return IMXNull
+  imxc MXClassCell False        = IMXCell       =.< imxa (imxData . mCell)
+  imxc MXClassStruct False      = do
     s <- mxArraySize a'
     fv <- mxArrayGetAll a'
     f <- if null fv then mStructFields a' else return (map fst (mStruct (head fv)))
     listIMXStruct f s =.< mapM imxData (concatMap (map snd . mStruct) fv)
-  imxc MXClassLogical False	= IMXLogical	=.< imxa return
-  imxc MXClassChar False	= IMXChar	=.< imxa return
-  imxc MXClassDouble False	= IMXDouble	=.< imxa return
-  imxc MXClassSingle False	= IMXSingle	=.< imxa return
-  imxc MXClassInt8 False	= IMXInt8	=.< imxa return
-  imxc MXClassUint8 False	= IMXUint8	=.< imxa return
-  imxc MXClassInt16 False	= IMXInt16	=.< imxa return
-  imxc MXClassUint16 False	= IMXUint16	=.< imxa return
-  imxc MXClassInt32 False	= IMXInt32	=.< imxa return
-  imxc MXClassUint32 False	= IMXUint32	=.< imxa return
-  imxc MXClassInt64 False	= IMXInt64	=.< imxa return
-  imxc MXClassUint64 False	= IMXUint64	=.< imxa return
-  imxc MXClassDouble True	= IMXComplexDouble	=.< imxa return
-  imxc MXClassSingle True	= IMXComplexSingle	=.< imxa return
-  imxc MXClassObject False	= do
+  imxc MXClassLogical False     = IMXLogical    =.< imxa return
+  imxc MXClassChar False        = IMXChar       =.< imxa return
+  imxc MXClassDouble False      = IMXDouble     =.< imxa return
+  imxc MXClassSingle False      = IMXSingle     =.< imxa return
+  imxc MXClassInt8 False        = IMXInt8       =.< imxa return
+  imxc MXClassUint8 False       = IMXUint8      =.< imxa return
+  imxc MXClassInt16 False       = IMXInt16      =.< imxa return
+  imxc MXClassUint16 False      = IMXUint16     =.< imxa return
+  imxc MXClassInt32 False       = IMXInt32      =.< imxa return
+  imxc MXClassUint32 False      = IMXUint32     =.< imxa return
+  imxc MXClassInt64 False       = IMXInt64      =.< imxa return
+  imxc MXClassUint64 False      = IMXUint64     =.< imxa return
+  imxc MXClassDouble True       = IMXComplexDouble      =.< imxa return
+  imxc MXClassSingle True       = IMXComplexSingle      =.< imxa return
+  imxc MXClassObject False      = do
     Just c <- mObjectGetClass a'
     IMXObject c =.< imxc MXClassStruct False
   imxc t c = fail ("imxData: unhandled mxArray type " ++ show t ++ if c then "(complex)" else "")
@@ -192,18 +192,18 @@ iMXData = imxd where
     m <- createStruct (mRangeSize (r0,r1)) f
     zipWithM_ (\i -> mStructSetFields m (mOffset i) <=< mapM iMXData) [0..] (segment (length f) (elems a))
     return $ anyMXArray m
-  imxd (IMXLogical a)	= imxa a return
-  imxd (IMXChar a)	= imxa a return
-  imxd (IMXDouble a)	= imxa a return
-  imxd (IMXSingle a)	= imxa a return
-  imxd (IMXInt8 a)	= imxa a return
-  imxd (IMXUint8 a)	= imxa a return
-  imxd (IMXInt16 a)	= imxa a return
-  imxd (IMXUint16 a)	= imxa a return
-  imxd (IMXInt32 a)	= imxa a return
-  imxd (IMXUint32 a)	= imxa a return
-  imxd (IMXInt64 a)	= imxa a return
-  imxd (IMXUint64 a)  	= imxa a return
+  imxd (IMXLogical a)   = imxa a return
+  imxd (IMXChar a)      = imxa a return
+  imxd (IMXDouble a)    = imxa a return
+  imxd (IMXSingle a)    = imxa a return
+  imxd (IMXInt8 a)      = imxa a return
+  imxd (IMXUint8 a)     = imxa a return
+  imxd (IMXInt16 a)     = imxa a return
+  imxd (IMXUint16 a)    = imxa a return
+  imxd (IMXInt32 a)     = imxa a return
+  imxd (IMXUint32 a)    = imxa a return
+  imxd (IMXInt64 a)     = imxa a return
+  imxd (IMXUint64 a)    = imxa a return
   imxd (IMXComplexDouble a) = imxa a return
   imxd (IMXComplexSingle a) = imxa a return
   imxd (IMXObject c a) = do
@@ -295,19 +295,19 @@ showsIMX (IMXStruct f a) = showsReshape (mRangeSize (r0,r1)) $ \d ->
   v = transpose $ segment (length f) $ elems a
   ((r0,_),(r1,_)) = bounds a
 showsIMX (IMXLogical a) = showsApp "logical"  $ showsIMXArray a
-showsIMX (IMXChar a)	= showsApp "char"     $ showsIMXArray a
-showsIMX (IMXDouble a)	=                       showsIMXArray a
-showsIMX (IMXSingle a)	= showsApp "single"   $ showsIMXArray a
-showsIMX (IMXInt8 a)	= showsApp "int8"     $ showsIMXArray a
-showsIMX (IMXUint8 a)	= showsApp "uint8"    $ showsIMXArray a
-showsIMX (IMXInt16 a)	= showsApp "int16"    $ showsIMXArray a
-showsIMX (IMXUint16 a)	= showsApp "uint16"   $ showsIMXArray a
-showsIMX (IMXInt32 a)	= showsApp "int32"    $ showsIMXArray a
-showsIMX (IMXUint32 a)	= showsApp "uint32"   $ showsIMXArray a
-showsIMX (IMXInt64 a)	= showsApp "int64"    $ showsIMXArray a
-showsIMX (IMXUint64 a)	= showsApp "uint64"   $ showsIMXArray a
-showsIMX (IMXComplexDouble a)	= showsIMXArrayWith showsComplex a
-showsIMX (IMXComplexSingle a)	= showsApp "single" $ showsIMXArrayWith showsComplex a
+showsIMX (IMXChar a)    = showsApp "char"     $ showsIMXArray a
+showsIMX (IMXDouble a)  =                       showsIMXArray a
+showsIMX (IMXSingle a)  = showsApp "single"   $ showsIMXArray a
+showsIMX (IMXInt8 a)    = showsApp "int8"     $ showsIMXArray a
+showsIMX (IMXUint8 a)   = showsApp "uint8"    $ showsIMXArray a
+showsIMX (IMXInt16 a)   = showsApp "int16"    $ showsIMXArray a
+showsIMX (IMXUint16 a)  = showsApp "uint16"   $ showsIMXArray a
+showsIMX (IMXInt32 a)   = showsApp "int32"    $ showsIMXArray a
+showsIMX (IMXUint32 a)  = showsApp "uint32"   $ showsIMXArray a
+showsIMX (IMXInt64 a)   = showsApp "int64"    $ showsIMXArray a
+showsIMX (IMXUint64 a)  = showsApp "uint64"   $ showsIMXArray a
+showsIMX (IMXComplexDouble a)   = showsIMXArrayWith showsComplex a
+showsIMX (IMXComplexSingle a)   = showsApp "single" $ showsIMXArrayWith showsComplex a
 showsIMX (IMXObject c a) = showsApp "class" $ showsIMX a . showChar ',' . showsMString c
 
 instance Show IMXData where

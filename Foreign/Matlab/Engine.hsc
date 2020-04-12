@@ -12,7 +12,9 @@ module Foreign.Matlab.Engine (
     engineGetVar,
     engineSetVar,
     EngineEvalArg(..),
-    engineEvalFun
+    engineEvalFun,
+    engineEvalProc,
+    qt
   ) where
 
 import Control.Monad
@@ -36,8 +38,8 @@ foreign import ccall unsafe "&" engClose :: FunPtr (EnginePtr -> IO ()) -- CInt
 
 -- |Start Matlab server process.  It will automatically be closed down when no longer in use.
 newEngine :: FilePath -> IO Engine
-newEngine bin = do
-  eng <- withCString bin engOpen
+newEngine host = do
+  eng <- withCString host engOpen
   if eng == nullPtr
     then fail "engOpen"
     else Engine =.< newForeignPtr engClose eng
@@ -48,7 +50,7 @@ withEngine (Engine eng) = withForeignPtr eng
 foreign import ccall unsafe engEvalString :: EnginePtr -> CString -> IO CInt
 -- |Execute matlab statement
 engineEval :: Engine -> String -> IO ()
-engineEval eng s = do 
+engineEval eng s = do
   r <- withEngine eng (withCString s . engEvalString)
   when (r /= 0) $ fail "engineEval"
 
@@ -64,7 +66,7 @@ engineSetVar eng v x = do
   r <- withEngine eng (\eng -> withCString v (withMXArray x . engPutVariable eng))
   when (r /= 0) $ fail "engineSetVar"
 
-data EngineEvalArg a = EvalArray (MXArray a) | EvalVar String
+data EngineEvalArg a = EvalArray (MXArray a) | EvalVar String | EvalStr String
 
 -- |Evaluate a function with the given arguments and number of results.
 -- This automates 'engineSetVar' on arguments (using \"hseval_inN\"), 'engineEval', and 'engineGetVar' on results (using \"hseval_outN\").
@@ -79,6 +81,17 @@ engineEvalFun eng fun arg no = do
     makearg (EvalArray x) i = do
       let v = "hseval_in" ++ show i
       engineSetVar eng v x
-      return v
-    makearg (EvalVar v) _ = return v
+      pure v
+    makearg (EvalVar v) _ = pure v
+    makearg (EvalStr v) _ = pure $ qt v
     makeout i = "hseval_out" ++ show i
+
+-- |Convenience function for calling functions that do not return values (i.e. "procedures").
+engineEvalProc :: Engine -> String -> [EngineEvalArg a] -> IO ()
+engineEvalProc eng fun arg = do
+  _ <- engineEvalFun eng fun arg 0
+  pure ()
+
+-- |Utility function to quote a string
+qt :: String -> String
+qt s = "'" <> s <>  "'"

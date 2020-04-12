@@ -36,7 +36,7 @@ import Foreign.Matlab.Util
 
 type MIO a = IO a
 
-type CBool = #type bool
+-- type CBool = #type bool
 
 boolC :: CBool -> Bool
 boolC = (0 /=)
@@ -45,9 +45,9 @@ cBool :: Bool -> CBool
 cBool = ii . fromEnum
 
 type MXClassID = #type mxClassID
-data MXClass = 
+data MXClass =
     MXClassNull
-  | MXClassCell 
+  | MXClassCell
   | MXClassStruct
   | MXClassLogical
   | MXClassChar
@@ -88,7 +88,7 @@ instance MType MXClassID MXClass where
   mx2hs (#const mxINT64_CLASS)   = MXClassInt64
   mx2hs (#const mxUINT64_CLASS)  = MXClassUint64
   mx2hs (#const mxFUNCTION_CLASS)= MXClassFun
-  mx2hs (#const mxOBJECT_CLASS)	 = MXClassObject
+  mx2hs (#const mxOBJECT_CLASS)  = MXClassObject
   mx2hs c = error ("MXClass: unknown mxClassID " ++ show c)
   hs2mx MXClassNull     = #const mxVOID_CLASS
   hs2mx MXClassCell     = #const mxCELL_CLASS
@@ -106,7 +106,7 @@ instance MType MXClassID MXClass where
   hs2mx MXClassInt64    = #const mxINT64_CLASS
   hs2mx MXClassUint64   = #const mxUINT64_CLASS
   hs2mx MXClassFun      = #const mxFUNCTION_CLASS
-  hs2mx MXClassObject   = #const mxOBJECT_CLASS	 
+  hs2mx MXClassObject   = #const mxOBJECT_CLASS
   mxClassOf _ = error "mxClassOf: no class for MXClassID"
 
 type MXChar = #type mxChar
@@ -116,7 +116,7 @@ instance MType MXChar MChar where
   mx2hs = Data.Char.chr . ii
   mxClassOf _ = MXClassChar
 
-type MXLogical = #type mxLogical
+type MXLogical = CBool
 type MLogical = Bool
 instance MType MXLogical MLogical where
   hs2mx = cBool
@@ -176,7 +176,7 @@ data MAny
 type MAnyArray = MXArray MAny
 
 -- |Tag for a NULL array
-data MNull 
+data MNull
 instance MType MNull MNull where
   hs2mx = id
   mx2hs = id
@@ -201,7 +201,7 @@ instance MType MStruct MStruct where
 
 type MXFun = CInt -> Ptr MXArrayPtr -> CInt -> Ptr MXArrayPtr -> IO ()
 -- |A Matlab function
-type MFun = 
+type MFun =
   [MAnyArray] -- ^ RHS input arguments
   -> Int -- ^ LHS output argument count
   -> IO [MAnyArray] -- ^ LHS output arguments
