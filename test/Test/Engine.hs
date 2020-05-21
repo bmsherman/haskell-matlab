@@ -23,6 +23,7 @@ runEngineTests host = do
   runLocalMatFun eng
   cosOfPi eng
   testAbstractValueUse eng
+  testTypedAbstractValueUse eng
 
 cosOfPi :: Engine -> IO ()
 cosOfPi eng = do
@@ -66,6 +67,24 @@ useTestStruct eng sIn = do
   case mxArrMay of
     Just mxArr -> mxScalarGet mxArr
     Nothing -> pure 0.0
+
+
+newtype MyAbsType = MyAbsType { unMyAbsType :: MAnyArray }
+
+-- |Similar to testAbstractValueUse, but instead of using
+-- |MAnyArray, we use newtypes for better type safety
+testTypedAbstractValueUse :: Engine -> IO ()
+testTypedAbstractValueUse eng = do
+  putStrLn $ "\n-- testTypedAbstractValueUse -- "
+  sOut <- makeTestStructTyped eng
+  sSum <- useTestStructTyped eng sOut
+  putStrLn $ "  struct sum is: " <> (show sSum)
+
+makeTestStructTyped :: Engine -> IO MyAbsType
+makeTestStructTyped eng = MyAbsType <$> (makeTestStruct eng)
+
+useTestStructTyped :: Engine -> MyAbsType -> IO MDouble
+useTestStructTyped eng (MyAbsType sIn) = useTestStruct eng sIn
 
 testRel :: Path Rel Dir
 testRel = $(mkRelDir "test")
