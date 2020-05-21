@@ -15,11 +15,14 @@ engineTests = runEngineTests ""
 
 runEngineTests :: String -> IO ()
 runEngineTests host = do
-  putStrLn " -- Starting engine --"
+  putStrLn "-- Starting engine --"
   eng <- newEngine host
-  putStrLn " -- Engine created --"
+  putStrLn "-- Engine created --"
+  let testPath = repoDir </> testRel
+  addpath eng testPath
   runLocalMatFun eng
   cosOfPi eng
+  testAbstractValueUse eng
 
 cosOfPi :: Engine -> IO ()
 cosOfPi eng = do
@@ -30,9 +33,7 @@ cosOfPi eng = do
 runLocalMatFun :: Engine -> IO ()
 runLocalMatFun eng = do
   putStrLn "\n-- mtest: cos pi --"
-  let testPath = repoDir </> testRel
   x <- createMXScalar (pi :: MDouble)
-  addpath eng testPath
   -- let addTestPath = "addpath " <> (toFilePath testPath)
   -- putStrLn $ "evaluating: " <> addTestPath
   -- engineEval eng addTestPath
@@ -45,6 +46,26 @@ cosBody eng cosFun x = do
   Just y <- castMXArray y
   y <- mxScalarGet y
   print (y :: MDouble)
+
+testAbstractValueUse :: Engine -> IO ()
+testAbstractValueUse eng = do
+  putStrLn $ "\n-- testAbstractValueUse -- "
+  sOut <- makeTestStruct eng
+  sSum <- useTestStruct eng sOut
+  putStrLn $ "  struct sum is: " <> (show sSum)
+
+makeTestStruct :: Engine -> IO MAnyArray
+makeTestStruct eng = do
+  [res] <- engineEvalFun eng "makeTestStruct" [] 1
+  pure res
+
+useTestStruct :: Engine -> MAnyArray -> IO MDouble
+useTestStruct eng sIn = do
+  [res] <- engineEvalFun eng "useTestStruct" [EvalArray sIn] 1
+  mxArrMay <- castMXArray res
+  case mxArrMay of
+    Just mxArr -> mxScalarGet mxArr
+    Nothing -> pure 0.0
 
 testRel :: Path Rel Dir
 testRel = $(mkRelDir "test")
