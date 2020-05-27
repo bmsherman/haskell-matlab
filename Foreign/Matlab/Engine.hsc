@@ -71,8 +71,8 @@ data EngineEvalArg a = EvalArray (MXArray a) | EvalVar String | EvalStr String
 -- |Evaluate a function with the given arguments and number of results.
 -- This automates 'engineSetVar' on arguments (using \"hseval_inN\"), 'engineEval', and 'engineGetVar' on results (using \"hseval_outN\").
 engineEvalFun :: Engine -> String -> [EngineEvalArg a] -> Int -> IO [MAnyArray]
-engineEvalFun eng fun arg no = do
-  arg <- zipWithM makearg arg [1 :: Int ..]
+engineEvalFun eng fun args no = do
+  arg <- zipWithM makearg args [1 :: Int ..]
   let out = map makeout [1..no]
   let outs = if out == [] then "" else "[" ++ unwords out ++ "] = "
   engineEval eng (outs ++ fun ++ "(" ++ intercalate "," arg ++ ")")
@@ -88,8 +88,8 @@ engineEvalFun eng fun arg no = do
 
 -- |Convenience function for calling functions that do not return values (i.e. "procedures").
 engineEvalProc :: Engine -> String -> [EngineEvalArg a] -> IO ()
-engineEvalProc eng fun arg = do
-  _ <- engineEvalFun eng fun arg 0
+engineEvalProc eng fun args = do
+  _ <- engineEvalFun eng fun args 0
   pure ()
 
 -- |Utility function to quote a string
