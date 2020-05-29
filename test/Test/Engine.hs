@@ -1,9 +1,11 @@
 {-# LANGUAGE QuasiQuotes            #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TemplateHaskell        #-}
 
 module Test.Engine where
 
-import Control.Exception (assert)
+import Control.Exception (SomeException, assert, try)
+import Data.Either (isLeft, isRight, lefts)
 import Foreign.Matlab
 import Foreign.Matlab.Engine
 import Foreign.Matlab.Engine.Wrappers
@@ -27,6 +29,7 @@ runEngineTests host = do
   testTypedAbstractValueUse eng
   testGetByteStreamFromArray eng
   testGetArrayFromByteStream eng
+  testCellGet eng
   testClearVar eng
 
 cosOfPi :: Engine -> IO ()
@@ -117,15 +120,31 @@ makeTestStructByteStream eng = do
     Just mxArr -> mxArrayGetAll mxArr
     Nothing -> pure []
 
+testCellGet :: Engine -> IO ()
+testCellGet eng = do
+  putStrLn "\n-- testCellGet --"
+  [ca] <- engineEvalFun eng "mcellTest" [] 1
+  caLen <- mxArrayLength ca
+  putStrLn $ show $ caLen
+  -- Just cad <- castMXArray ca
+  -- ys <- mxArrayGetAll cad
+  -- print (ys :: [MDouble])
+
+
 testClearVar :: Engine -> IO ()
 testClearVar eng = do
+  putStrLn $ "\n-- testClearVar --"
   let foopi = "foopi"
   x <- createMXScalar (pi :: MDouble)
   engineSetVar eng foopi x
-  x1 <- engineGetVar eng foopi
+  ei1 :: Either SomeException MAnyArray <- try $ engineGetVar eng foopi
+  putStrLn $ assert (isRight ei1) "  Can clearVar once"
   clearVar eng foopi
-  x2 <- engineGetVar eng foopi
-  pure ()
+  ei2 :: Either SomeException MAnyArray <- try $ engineGetVar eng foopi
+  putStrLn $ assert (isLeft ei2) $
+    " Can't clearVar twice: " <> (show $ lefts [ei2])
+  putStrLn "  Finished testClearVar"
+
 
 testRel :: Path Rel Dir
 testRel = $(mkRelDir "test")

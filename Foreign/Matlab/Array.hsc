@@ -103,6 +103,7 @@ mxArraySetSize a s = do
   when (r /= 0) $ fail "mxArraySetSize"
 
 foreign import ccall unsafe mxGetNumberOfElements :: MXArrayPtr -> IO CSize
+-- |Like `numel` in MATLAB.
 mxArrayLength :: MXArray a -> MIO Int
 mxArrayLength a = ii =.< withMXArray a mxGetNumberOfElements
 

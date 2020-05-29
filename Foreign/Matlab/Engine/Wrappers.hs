@@ -10,6 +10,7 @@ module Foreign.Matlab.Engine.Wrappers (
 , clearVar
 , getArrayFromByteStream
 , getByteStreamFromArray
+, MEither(..), isMLeft, isMRight
 ) where
 
 import Foreign.Matlab
@@ -42,3 +43,15 @@ getArrayFromByteStream eng bytes = do
   mxArraySetAll matBsArr bytes
   [mObj] <- engineEvalFun eng "getArrayFromByteStream" [EvalArray matBsArr] 1
   pure mObj
+
+newtype MEither = MEither {unMXEither :: MStructArray}
+
+isMLeft :: MEither -> IO Bool
+isMLeft me = do
+  sFields <- mStructFields $ unMXEither me
+  pure $ "left" `elem` sFields
+
+isMRight :: MEither -> IO Bool
+isMRight me = do
+  sFields <- mStructFields $ unMXEither me
+  pure $ "right" `elem` sFields
