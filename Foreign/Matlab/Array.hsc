@@ -41,6 +41,7 @@ module Foreign.Matlab.Array (
     mStructGet, mStructSet,
     mStructSetFields,
     mStructAddField, mStructRemoveField,
+    mxCellGetAllOfType, mxCellGetArraysOfType,
 
     -- ** Object access
     -- |Some structs are also validated (blessed) user objects.
@@ -52,6 +53,7 @@ import Foreign
 import Foreign.C.String
 import Foreign.C.Types
 import Data.Complex
+import Data.Maybe (catMaybes)
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
 import Foreign.Matlab.Types
@@ -103,6 +105,7 @@ mxArraySetSize a s = do
   when (r /= 0) $ fail "mxArraySetSize"
 
 foreign import ccall unsafe mxGetNumberOfElements :: MXArrayPtr -> IO CSize
+-- |Like `numel` in MATLAB.
 mxArrayLength :: MXArray a -> MIO Int
 mxArrayLength a = ii =.< withMXArray a mxGetNumberOfElements
 
@@ -211,6 +214,20 @@ castMXArray a
       where
         b :: MXArray a
         b = unsafeCastMXArray a
+
+-- | Extract all arrays of a given type from a Cell Array.
+mxCellGetArraysOfType :: MXArrayComponent a => MXArray MCell -> MIO ([MXArray a])
+mxCellGetArraysOfType ca = do
+  cellVals <- (fmap . fmap) mCell (mxArrayGetAll ca)
+  mxaMays :: [Maybe (MXArray a)] <- sequence $ castMXArray <$> cellVals
+  pure $ catMaybes mxaMays
+
+-- | A convenience function to extract all arrays of a given type from a Cell Array;
+-- | may have larger dimensions than the original Cell Array due to flattening.
+mxCellGetAllOfType :: MXArrayComponent a => MXArray MCell -> MIO [a]
+mxCellGetAllOfType ca = do
+  as <- mxCellGetArraysOfType ca
+  join <$> (sequence $ mxArrayGetAll <$> as)
 
 foreign import ccall unsafe mxGetData :: MXArrayPtr -> IO (Ptr a)
 

@@ -1,2 +1,5 @@
 .stack-work
 patchMatlab.lock
+
+# Editor files
+*~
