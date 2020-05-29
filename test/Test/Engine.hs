@@ -120,16 +120,21 @@ makeTestStructByteStream eng = do
     Just mxArr -> mxArrayGetAll mxArr
     Nothing -> pure []
 
+-- TODO: display cell array and extracted values in test
 testCellGet :: Engine -> IO ()
 testCellGet eng = do
   putStrLn "\n-- testCellGet --"
   [ca] <- engineEvalFun eng "mcellTest" [] 1
+  Just (ca :: MXArray MCell) <- castMXArray ca
   caLen <- mxArrayLength ca
-  putStrLn $ show $ caLen
-  -- Just cad <- castMXArray ca
-  -- ys <- mxArrayGetAll cad
-  -- print (ys :: [MDouble])
-
+  let caLenMsg = assert (caLen == 6) "cell array has length 6"
+  putStrLn caLenMsg
+  dCells :: [MXArray MDouble] <- mxCellGetArraysOfType ca
+  let dCellsMsg = assert (length dCells == 4) "cell array has 4 double arrays"
+  putStrLn dCellsMsg
+  dVals :: [MDouble] <- mxCellGetAllOfType ca
+  let dValsMsg = assert (length dVals == 4) "cell array has 4 double values"
+  putStrLn dValsMsg
 
 testClearVar :: Engine -> IO ()
 testClearVar eng = do

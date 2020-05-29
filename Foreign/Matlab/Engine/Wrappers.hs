@@ -21,7 +21,7 @@ import Path
 addpath :: Engine -> Path Abs Dir -> IO ()
 addpath eng p = engineEvalProc eng "addpath" [EvalStr $ toFilePath p]
 
---TODO: add a test for this
+-- | TODO: add a test for this, likely not working as expected.
 -- | Clears a variable from the engine's workspace
 clearVar :: Engine -> String -> IO ()
 clearVar eng var = engineEvalProc eng "clear" [EvalStr var]
