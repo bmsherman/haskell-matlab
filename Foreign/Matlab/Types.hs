@@ -11,7 +11,6 @@ module Foreign.Matlab.Types (
     MChar,
     MLogical,
     MScalar,
-    MType,
 
     MNumeric,
     -- * Numeric types
