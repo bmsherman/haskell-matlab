@@ -31,6 +31,7 @@ module Foreign.Matlab.Array (
     -- | array list access
     mxArrayGetList, mxArraySetList,
     mxArrayGetAll, mxArraySetAll,
+    fromListIO,
 
     -- * Struct access
     -- |Structs in Matlab are always arrays, and so can be accessed using most array accessors.
@@ -125,6 +126,13 @@ foreign import ccall unsafe mxDestroyArray :: MXArrayPtr -> IO ()
 -- |Destroy an array and all of its contents.
 freeMXArray :: MXArray a -> MIO ()
 freeMXArray a = withMXArray a mxDestroyArray
+
+-- |Create and populate an MXArray in one go.
+fromListIO :: MXArrayComponent a => [a] -> MIO (MXArray a)
+fromListIO xs = do
+  arr <- createMXArray [length xs]
+  mxArraySetAll arr xs
+  pure arr
 
 -- |The class of standardly typeable array elements
 class MXArrayComponent a where
