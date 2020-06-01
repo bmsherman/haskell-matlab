@@ -31,7 +31,7 @@ module Foreign.Matlab.Array (
     -- | array list access
     mxArrayGetList, mxArraySetList,
     mxArrayGetAll, mxArraySetAll,
-    fromListIO,
+    fromListIO, cellFromListsIO,
 
     -- * Struct access
     -- |Structs in Matlab are always arrays, and so can be accessed using most array accessors.
@@ -50,6 +50,7 @@ module Foreign.Matlab.Array (
   ) where
 
 import Control.Monad
+import Data.Foldable (toList)
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
@@ -128,10 +129,21 @@ freeMXArray :: MXArray a -> MIO ()
 freeMXArray a = withMXArray a mxDestroyArray
 
 -- |Create and populate an MXArray in one go.
-fromListIO :: MXArrayComponent a => [a] -> MIO (MXArray a)
+fromListIO :: (Foldable t, MXArrayComponent a) => t a -> MIO (MXArray a)
 fromListIO xs = do
   arr <- createMXArray [length xs]
-  mxArraySetAll arr xs
+  mxArraySetAll arr xsList
+  pure arr
+  where
+    xsList = toList xs
+
+-- | Like fromListIO but wraps elements in a cell. Most useful for converting a list of strings
+-- | to a MATLAB cell array of strings.
+cellFromListsIO :: (Traversable s, Foldable t, MXArrayComponent a) => s (t a) -> MIO (MXArray MCell)
+cellFromListsIO xss = do
+  listOfStructArrays <- sequence $ fromListIO <$> xss
+  arr <- createMXArray [length xss]
+  mxArraySetAll arr (toList $ (MCell . anyMXArray) <$> listOfStructArrays)
   pure arr
 
 -- |The class of standardly typeable array elements
