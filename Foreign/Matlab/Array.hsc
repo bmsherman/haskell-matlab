@@ -30,7 +30,7 @@ module Foreign.Matlab.Array (
     mxArrayGet, mxArraySet,
     -- | array list access
     mxArrayGetList, mxArraySetList,
-    mxArrayGetAll, mxArraySetAll,
+    mxArrayGetAll, mxArraySetAll, mxArrayGetFirst,
     fromListIO, cellFromListsIO,
 
     -- * Struct access
@@ -71,14 +71,14 @@ type MNullArray = MXArray MNull
 -- |Safely cast a generic array to a NULL array, or return Nothing if the array is not NULL
 castMNull :: MAnyArray -> MIO (Maybe MNullArray)
 castMNull a
-  | isMNull a = return $ Just (unsafeCastMXArray a)
-  | otherwise = return Nothing
+  | isMNull a = pure $ Just (unsafeCastMXArray a)
+  | otherwise = pure Nothing
 
 foreign import ccall unsafe mxGetClassID :: MXArrayPtr -> IO MXClassID
 -- |Return the representation of the type of the elements of an array
 mxArrayClass :: MXArray a -> IO MXClass
 mxArrayClass a
-  | isMNull a = return $ MXClassNull
+  | isMNull a = pure $ MXClassNull
   | otherwise = withMXArray a mxGetClassID >.= mx2hs
 
 ndims :: MWSize -> Ptr MWSize -> IO MSize
@@ -114,8 +114,8 @@ mxArrayLength a = ii =.< withMXArray a mxGetNumberOfElements
 foreign import ccall unsafe mxCalcSingleSubscript :: MXArrayPtr -> MWSize -> Ptr MWIndex -> IO MWIndex
 -- |Convert an array subscript into an offset
 mIndexOffset :: MXArray a -> MIndex -> MIO Int
-mIndexOffset _ (MSubs []) = return 0
-mIndexOffset _ (MSubs [i]) = return i
+mIndexOffset _ (MSubs []) = pure 0
+mIndexOffset _ (MSubs [i]) = pure i
 mIndexOffset a (MSubs i) = ii =.< withMXArray a (withNSubs i . uncurry . mxCalcSingleSubscript)
 
 foreign import ccall unsafe mxDuplicateArray :: MXArrayPtr -> IO MXArrayPtr
@@ -176,7 +176,7 @@ class MXArrayComponent a where
   -- |Create a row vector from the given list.
   createRowVector :: [a] -> MIO (MXArray a)
 
-  isMXArray _ = return False
+  isMXArray _ = pure False
   isMXScalar a = liftM2 (&&) (isMXArray a) (all (1 ==) =.< mxArraySize a)
 
   mxArrayGetOffsetList a o n = mapM (mxArrayGetOffset a) [o..o+n-1]
@@ -187,15 +187,15 @@ class MXArrayComponent a where
   createMXScalar x = do
     a <- createMXArray [1]
     mxArraySetOffset a 0 x
-    return a
+    pure a
   createRowVector l = do
     a <- createMXArray [1,length l]
     mxArraySetOffsetList a 0 l
-    return a
+    pure a
   createColVector l = do
     a <- createMXArray [length l]
     mxArraySetOffsetList a 0 l
-    return a
+    pure a
 
 -- |Get the value of the specified array element.  Does not check bounds.
 mxArrayGet :: MXArrayComponent a => MXArray a -> MIndex -> MIO a
@@ -210,7 +210,7 @@ mxArraySet a i v = do
 mxArrayGetList :: MXArrayComponent a => MXArray a -> MIndex -> Int -> MIO [a]
 mxArrayGetList a i n = do
   o <- mIndexOffset a i
-  n <- if n == -1 then subtract o =.< mxArrayLength a else return n
+  n <- if n == -1 then subtract o =.< mxArrayLength a else pure n
   mxArrayGetOffsetList a o n
 -- |@'mxArraySetList' a i l@ sets the sequential items in array @a@ starting at index @i@ to @l@.  Does not check bounds.
 mxArraySetList :: MXArrayComponent a => MXArray a -> MIndex -> [a] -> MIO ()
@@ -226,13 +226,18 @@ mxArrayGetAll a = mxArrayGetList a mStart (-1)
 mxArraySetAll :: MXArrayComponent a => MXArray a -> [a] -> IO ()
 mxArraySetAll a = mxArraySetList a mStart
 
+mxArrayGetFirst :: MXArrayComponent a => MXArray a -> MIO (Either String a)
+mxArrayGetFirst arr
+  | isMNull arr = pure $ Left "Couldn't get first element of null array"
+  | otherwise = Right <$> mxArrayGetOffset arr 0
+
 -- |Safely cast a generic array to a type, or return Nothing if the array does not have the proper type
 castMXArray :: forall a. MXArrayComponent a => MAnyArray -> MIO (Maybe (MXArray a))
 castMXArray a
-  | isMNull a = return Nothing
+  | isMNull a = pure Nothing
   | otherwise = do
       y <- isMXArray b
-      return $ if y then Just b else Nothing
+      pure $ if y then Just b else Nothing
       where
         b :: MXArray a
         b = unsafeCastMXArray a
@@ -386,7 +391,8 @@ foreign import ccall unsafe mxSetField :: MXArrayPtr -> MWIndex -> CString -> MX
 foreign import ccall unsafe mxGetFieldByNumber :: MXArrayPtr -> MWIndex -> CInt -> IO MXArrayPtr
 foreign import ccall unsafe mxSetFieldByNumber :: MXArrayPtr -> MWIndex -> CInt -> MXArrayPtr -> IO ()
 
--- |Return the contents of the named field for the given element. Returns 'MNullArray' on no such field or if the field itself is NULL
+-- |Return the contents of the named field for the given element.
+-- |Returns 'MNullArray' on no such field or if the field itself is NULL
 mStructGet :: MStructArray -> MIndex -> String -> MIO MAnyArray
 -- |Sets the contents of the named field for the given element. The input is stored in the array -- no copy is made.
 mStructSet :: MStructArray -> MIndex -> String -> MXArray a -> MIO ()
@@ -435,7 +441,7 @@ instance MXArrayComponent MStruct where
   createMXScalar (MStruct fv) = do
     a <- createStruct [1] f
     withMXArray a $ \a -> zipWithM_ (\i v -> withMXArray v (mxSetFieldByNumber a 0 i)) [0..] v
-    return a
+    pure a
     where
       (f,v) = unzip fv
 
@@ -446,7 +452,7 @@ mObjectGetClass a = do
   b <- boolC =.< withMXArray a mxIsObject
   if b
     then Just =.< withMXArray a (mxGetClassName >=> peekCString)
-    else return Nothing
+    else pure Nothing
 
 foreign import ccall unsafe mxSetClassName :: MXArrayPtr -> CString -> IO CInt
 -- |Set classname of an unvalidated object array.  It is illegal to call this function on a previously validated object array.
@@ -476,14 +482,14 @@ instance (RealFloat a, MNumeric a, MXArrayData mx a) => MXArrayComponent (MCompl
   mxArrayGetOffset a o = do
     r <- withRealDataOff a o (mx2hs .=< peek)
     c <- withImagDataOff a o (mx2hs .=< peek)
-    return $ r :+ c
+    pure $ r :+ c
   mxArraySetOffset a o (r :+ c) = do
     withRealDataOff a o (\p -> poke p (hs2mx r))
     withImagDataOff a o (\p -> poke p (hs2mx c))
   mxArrayGetOffsetList a o n = do
     r <- withRealDataOff a o (map mx2hs .=< peekArray n)
     c <- withImagDataOff a o (map mx2hs .=< peekArray n)
-    return $ zipWith (:+) r c
+    pure $ zipWith (:+) r c
   mxArraySetOffsetList a o v = do
     withRealDataOff a o (\p -> pokeArray p (map hs2mx r))
     withImagDataOff a o (\p -> pokeArray p (map hs2mx c))

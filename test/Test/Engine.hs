@@ -25,6 +25,7 @@ runEngineTests host = do
   addpath eng testPath
   runLocalMatFun eng
   cosOfPi eng
+  testGetFirst eng
   testAbstractValueUse eng
   testTypedAbstractValueUse eng
   testGetByteStreamFromArray eng
@@ -52,6 +53,14 @@ cosBody eng cosFun x = do
   y <- mxScalarGet y
   print (y :: MDouble)
 
+testGetFirst :: Engine -> IO ()
+testGetFirst eng = do
+  putStrLn $ "\n-- testGetFirst --"
+  xa <- createMXScalar (1.0 :: MDouble)
+  xEi <- mxArrayGetFirst xa
+  let xRes = assert (xEi == Right 1.0) xEi
+  putStrLn $ "  xRes is : " <> (show xRes)
+  
 testAbstractValueUse :: Engine -> IO ()
 testAbstractValueUse eng = do
   putStrLn $ "\n-- testAbstractValueUse --"
