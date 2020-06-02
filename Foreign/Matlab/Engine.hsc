@@ -22,6 +22,7 @@ import Foreign
 import Foreign.C.String
 import Foreign.C.Types
 import Data.List
+import Foreign.Matlab.Array (createMXScalar)
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
 
@@ -66,7 +67,7 @@ engineSetVar eng v x = do
   r <- withEngine eng (\eng -> withCString v (withMXArray x . engPutVariable eng))
   when (r /= 0) $ fail "engineSetVar"
 
-data EngineEvalArg a = EvalArray (MXArray a) | EvalVar String | EvalStr String
+data EngineEvalArg a = EvalArray (MXArray a) | EvalStruct MStruct | EvalVar String | EvalStr String
 
 -- |Evaluate a function with the given arguments and number of results.
 -- This automates 'engineSetVar' on arguments (using \"hseval_inN\"), 'engineEval', and 'engineGetVar' on results (using \"hseval_outN\").
@@ -81,6 +82,11 @@ engineEvalFun eng fun args no = do
     makearg (EvalArray x) i = do
       let v = "hseval_in" ++ show i
       engineSetVar eng v x
+      pure v
+    makearg (EvalStruct x) i = do
+      xa <- createMXScalar x
+      let v = "hseval_in" ++ show i
+      engineSetVar eng v xa
       pure v
     makearg (EvalVar v) _ = pure v
     makearg (EvalStr v) _ = pure $ qt v
