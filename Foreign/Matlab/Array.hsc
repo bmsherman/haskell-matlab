@@ -32,6 +32,7 @@ module Foreign.Matlab.Array (
     mxArrayGetList, mxArraySetList,
     mxArrayGetAll, mxArraySetAll, mxArrayGetFirst,
     fromListIO, cellFromListsIO,
+    isMNull,
 
     -- * Struct access
     -- |Structs in Matlab are always arrays, and so can be accessed using most array accessors.

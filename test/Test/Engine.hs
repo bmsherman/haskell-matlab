@@ -25,6 +25,7 @@ runEngineTests host = do
   addpath eng testPath
   runLocalMatFun eng
   cosOfPi eng
+  testIsMNull eng
   testGetFirst eng
   testAbstractValueUse eng
   testTypedAbstractValueUse eng
@@ -52,6 +53,22 @@ cosBody eng cosFun x = do
   Just y <- castMXArray y
   y <- mxScalarGet y
   print (y :: MDouble)
+
+testIsMNull :: Engine -> IO ()
+testIsMNull eng = do
+  putStrLn $ "\n-- testIsMNull --"
+  xa <- createMXScalar (1.0 :: MDouble)
+  let xaRes = assert (isMNull xa == False) xa
+  xaResEi <- mxArrayGetFirst xaRes
+  putStrLn $ "  xaResEi is Right: " <> (show $ isRight xaResEi)
+  xae :: MXArray MChar <- createMXArray []
+  freeMXArray xae
+  mxLen <- mxArrayLength xae
+  putStrLn $ "length is " <> (show mxLen)
+  -- This is a bit surprising, but ok
+  let xaeRes = assert (isMNull xae == False) xae
+  xaeResEi <- mxArrayGetFirst xaeRes
+  putStrLn $ "  xaeResEi is Right: " <> (show $ isRight xaeResEi)
 
 testGetFirst :: Engine -> IO ()
 testGetFirst eng = do
