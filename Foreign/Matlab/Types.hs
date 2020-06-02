@@ -35,7 +35,7 @@ module Foreign.Matlab.Types (
 
     -- * Opaque types
     MXArray,
-    MAnyArray,
+    MAny, MAnyArray,
     MCell(MCell), mCell,
     MStruct,
     MFun

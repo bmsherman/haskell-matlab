@@ -11,11 +11,15 @@ module Foreign.Matlab.Engine.Wrappers (
 , getArrayFromByteStream
 , getByteStreamFromArray
 , MEither(..), isMLeft, isMRight
+, VarArgIn, mxVarArgs
 ) where
 
-import Foreign.Matlab
-import Foreign.Matlab.Engine
-import Path
+import qualified Data.Map.Strict as DM
+import           Foreign.Matlab
+import           Foreign.Matlab.Engine
+import           Path
+
+type VarArgIn = DM.Map String MAnyArray
 
 -- | We require an absolute path in this case
 addpath :: Engine -> Path Abs Dir -> IO ()
@@ -55,3 +59,10 @@ isMRight :: MEither -> IO Bool
 isMRight me = do
   sFields <- mStructFields $ unMXEither me
   pure $ "right" `elem` sFields
+
+-- | Utility function to create an eval-able list of arguments for a vararg map.
+mxVarArgs :: VarArgIn -> [EngineEvalArg MAny]
+mxVarArgs varargin = DM.toList varargin >>= kvToArg
+  where
+  kvToArg :: (String, MAnyArray) -> [EngineEvalArg MAny]
+  kvToArg kv = [EvalStr $ fst kv, EvalArray $ snd kv]

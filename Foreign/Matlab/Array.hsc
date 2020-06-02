@@ -128,7 +128,8 @@ foreign import ccall unsafe mxDestroyArray :: MXArrayPtr -> IO ()
 freeMXArray :: MXArray a -> MIO ()
 freeMXArray a = withMXArray a mxDestroyArray
 
--- |Create and populate an MXArray in one go.
+-- | Create and populate an MXArray in one go. Named without 'mx' due to possible
+-- | conformity to a typeclass function.
 fromListIO :: (Foldable t, MXArrayComponent a) => t a -> MIO (MXArray a)
 fromListIO xs = do
   arr <- createMXArray [length xs]
@@ -138,7 +139,8 @@ fromListIO xs = do
     xsList = toList xs
 
 -- | Like fromListIO but wraps elements in a cell. Most useful for converting a list of strings
--- | to a MATLAB cell array of strings.
+-- | to a MATLAB cell array of strings. Named in conjunction with `fromListIO`, which is used
+-- | as part of the implementation.
 cellFromListsIO :: (Traversable s, Foldable t, MXArrayComponent a) => s (t a) -> MIO (MXArray MCell)
 cellFromListsIO xss = do
   listOfStructArrays <- sequence $ fromListIO <$> xss

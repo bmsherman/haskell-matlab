@@ -68,6 +68,7 @@ library
 
   if flag(engine)
     Exposed-modules:  Foreign.Matlab.Engine
+    Build-depends:    containers
     extra-libraries:  eng
 
 Source-repository head
