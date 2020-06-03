@@ -31,7 +31,8 @@ module Foreign.Matlab.Array (
     -- | array list access
     mxArrayGetList, mxArraySetList,
     mxArrayGetAll, mxArraySetAll,
-    mxArrayGetSafe, mxArrayGetFirst, mxArrayGetLast,
+    mxArrayGetOffsetSafe, mxArrayGetFirst, mxArrayGetLast,
+    -- mxArrayGetSafe, --TODO--
     fromListIO, cellFromListsIO,
     isMNull,
 
@@ -51,16 +52,17 @@ module Foreign.Matlab.Array (
     mObjectGetClass, mObjectSetClass
   ) where
 
-import Control.Monad
-import Data.Foldable (toList)
-import Foreign
-import Foreign.C.String
-import Foreign.C.Types
-import Data.Complex
-import Data.Maybe (catMaybes)
-import Foreign.Matlab.Util
-import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
+import           Control.Monad
+import           Data.Foldable (toList)
+import           Foreign
+import           Foreign.C.String
+import           Foreign.C.Types
+import           Data.Complex
+import qualified Data.Map.Strict as DM
+import           Data.Maybe (catMaybes)
+import           Foreign.Matlab.Util
+import           Foreign.Matlab.Internal
+import           Foreign.Matlab.Types
 
 #include <matrix.h>
 
@@ -231,16 +233,16 @@ mxArraySetAll :: MXArrayComponent a => MXArray a -> [a] -> IO ()
 mxArraySetAll a = mxArraySetList a mStart
 
 mxArrayGetFirst :: MXArrayComponent a => MXArray a -> MIO (Either String a)
-mxArrayGetFirst arr = mxArrayGetSafe arr 0
+mxArrayGetFirst arr = mxArrayGetOffsetSafe arr 0
 
 mxArrayGetLast :: MXArrayComponent a => MXArray a -> MIO (Either String a)
 mxArrayGetLast arr = do
   arrLen <- mxArrayLength arr
-  mxArrayGetSafe arr (arrLen - 1)
+  mxArrayGetOffsetSafe arr (arrLen - 1)
 
 -- |Like mxArrayGetOffset but safe.
-mxArrayGetSafe :: forall a. MXArrayComponent a => MXArray a -> Int -> MIO (Either String a)
-mxArrayGetSafe arr ix
+mxArrayGetOffsetSafe :: forall a. MXArrayComponent a => MXArray a -> Int -> MIO (Either String a)
+mxArrayGetOffsetSafe arr ix
   | isMNull arr = pure $ Left "Couldn't get element of null array"
   | otherwise = do
     arrLen <- mxArrayLength arr
@@ -441,7 +443,8 @@ mStructRemoveField a f = withMXArray a $ \a -> do
 
 structGetOffsetFields :: MStructArray -> [String] -> Int -> IO MStruct
 structGetOffsetFields a f o =
-  MStruct =.< withMXArray a (\a -> zipWithM (\f -> ((,) f) .=< (mxGetFieldByNumber a (ii o) >=> mkMXArray)) f [0..])
+  MStruct =.< withMXArray a (\a -> DM.fromList <$> 
+    (zipWithM (\f -> ((,) f) .=< (mxGetFieldByNumber a (ii o) >=> mkMXArray)) f [0..]))
 
 -- |Set the fields of a struct index to the given value list.  The list corresponds to the field list and must match in size.
 mStructSetFields :: MStructArray -> MIndex -> [MXArray a] -> MIO ()
@@ -464,7 +467,7 @@ instance MXArrayComponent MStruct where
     withMXArray a $ \a -> zipWithM_ (\i v -> withMXArray v (mxSetFieldByNumber a 0 i)) [0..] v
     pure a
     where
-      (f,v) = unzip fv
+      (f,v) = unzip $ DM.toList fv
 
 foreign import ccall unsafe mxGetClassName :: MXArrayPtr -> IO CString
 -- |Determine if a struct array is a user defined object, and return its class name, if any.

@@ -41,6 +41,7 @@ module Foreign.Matlab.Types (
     MFun
   ) where
 
+
 import Data.Complex
 import Data.Ix
 import Foreign.Matlab.Internal

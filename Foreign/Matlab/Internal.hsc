@@ -27,10 +27,11 @@ module Foreign.Matlab.Internal (
     MWSize, MWIndex, MWSignedIndex
   ) where
 
-import Foreign
-import Foreign.C.Types
+import qualified Data.Map.Strict as DM
+import           Foreign
+import           Foreign.C.Types
 import qualified Data.Char
-import Foreign.Matlab.Util
+import           Foreign.Matlab.Util
 
 #include <matrix.h>
 
@@ -193,7 +194,7 @@ instance MType MCell MCell where
   mxClassOf _ = MXClassCell
 
 -- |A single struct in an array, represented by an (ordered) list of key-value pairs
-newtype MStruct = MStruct { mStruct :: [(String,MAnyArray)] }
+newtype MStruct = MStruct { mStruct :: DM.Map String MAnyArray }
 instance MType MStruct MStruct where
   hs2mx = id
   mx2hs = id

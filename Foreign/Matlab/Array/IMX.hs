@@ -23,14 +23,15 @@ module Foreign.Matlab.Array.IMX (
     imxStructList
   ) where
 
-import Control.Monad
-import Data.Array.IArray
-import Data.Complex
-import Data.List
-import Foreign.Matlab.Util
-import Foreign.Matlab.Internal
-import Foreign.Matlab.Types
-import Foreign.Matlab.Array
+import           Control.Monad
+import           Data.Array.IArray
+import           Data.Complex
+import           Data.List
+import qualified Data.Map.Strict as DM
+import           Foreign.Matlab.Util
+import           Foreign.Matlab.Internal
+import           Foreign.Matlab.Types
+import           Foreign.Matlab.Array
 
 type IMXArray a = Array MIndex a
 -- |The basic immutable (functional) representation of Matlab data structures, representing a generic 'MXArray'
@@ -153,8 +154,8 @@ imxData a = do
   imxc MXClassStruct False      = do
     s <- mxArraySize a'
     fv <- mxArrayGetAll a'
-    f <- if null fv then mStructFields a' else return (map fst (mStruct (head fv)))
-    listIMXStruct f s =.< mapM imxData (concatMap (map snd . mStruct) fv)
+    f <- if null fv then mStructFields a' else return (map fst (DM.toList $ mStruct (head fv)))
+    listIMXStruct f s =.< mapM imxData (concatMap (map snd . DM.toList . mStruct) fv)
   imxc MXClassLogical False     = IMXLogical    =.< imxa return
   imxc MXClassChar False        = IMXChar       =.< imxa return
   imxc MXClassDouble False      = IMXDouble     =.< imxa return
