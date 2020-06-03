@@ -26,7 +26,7 @@ runEngineTests host = do
   runLocalMatFun eng
   cosOfPi eng
   testIsMNull eng
-  testGetFirst eng
+  testGetFirstLast eng
   testAbstractValueUse eng
   testTypedAbstractValueUse eng
   testGetByteStreamFromArray eng
@@ -60,23 +60,32 @@ testIsMNull eng = do
   xa <- createMXScalar (1.0 :: MDouble)
   let xaRes = assert (isMNull xa == False) xa
   xaResEi <- mxArrayGetFirst xaRes
-  putStrLn $ "  xaResEi is Right: " <> (show $ isRight xaResEi)
+  putStrLn $ "  xaResEi is Right: " <> (show xaResEi)
   xae :: MXArray MChar <- createMXArray []
   freeMXArray xae
   mxLen <- mxArrayLength xae
-  putStrLn $ "length is " <> (show mxLen)
-  -- This is a bit surprising, but ok
+  mxDims <- mxArraySize xae
+  putStrLn $ "length is " <> (show mxLen) <> " dims are " <> (show $ mxDims)
   let xaeRes = assert (isMNull xae == False) xae
   xaeResEi <- mxArrayGetFirst xaeRes
-  putStrLn $ "  xaeResEi is Right: " <> (show $ isRight xaeResEi)
+  putStrLn $ "  xaeResEi is Left: " <> (show xaeResEi)
 
-testGetFirst :: Engine -> IO ()
-testGetFirst eng = do
-  putStrLn $ "\n-- testGetFirst --"
-  xa <- createMXScalar (1.0 :: MDouble)
-  xEi <- mxArrayGetFirst xa
-  let xRes = assert (xEi == Right 1.0) xEi
+testGetFirstLast :: Engine -> IO ()
+testGetFirstLast eng = do
+  putStrLn $ "\n-- testGetFirstLast --"
+  let testVal :: MDouble = 1.0
+  xa <- createMXScalar testVal
+  xfEi <- mxArrayGetFirst xa
+  xlEi <- mxArrayGetLast xa
+  let xRes = assert (xlEi == Right 1.0 && xfEi == xlEi) xfEi
   putStrLn $ "  xRes is : " <> (show xRes)
+  threeArray :: MXArray MDouble <- fromListIO [5.0, 6.0, 7.0]
+  txfEi <- mxArrayGetFirst threeArray
+  txlEi <- mxArrayGetLast threeArray
+  let txfRes = assert (txfEi == Right 5.0) txfEi
+  putStrLn $ "  txfRes is : " <> (show txfRes)
+  let txlRes = assert (txlEi == Right 7.0) txlEi
+  putStrLn $ "  txlRes is : " <> (show txlRes)
   
 testAbstractValueUse :: Engine -> IO ()
 testAbstractValueUse eng = do

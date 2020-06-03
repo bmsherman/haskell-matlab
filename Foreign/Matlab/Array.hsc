@@ -30,7 +30,8 @@ module Foreign.Matlab.Array (
     mxArrayGet, mxArraySet,
     -- | array list access
     mxArrayGetList, mxArraySetList,
-    mxArrayGetAll, mxArraySetAll, mxArrayGetFirst,
+    mxArrayGetAll, mxArraySetAll,
+    mxArrayGetSafe, mxArrayGetFirst, mxArrayGetLast,
     fromListIO, cellFromListsIO,
     isMNull,
 
@@ -127,7 +128,9 @@ copyMXArray a = withMXArray a mxDuplicateArray >>= mkMXArray
 foreign import ccall unsafe mxDestroyArray :: MXArrayPtr -> IO ()
 -- |Destroy an array and all of its contents.
 freeMXArray :: MXArray a -> MIO ()
-freeMXArray a = withMXArray a mxDestroyArray
+freeMXArray a = do
+  withMXArray a mxDestroyArray
+  mxArraySetSize a [0, 0]
 
 -- | Create and populate an MXArray in one go. Named without 'mx' due to possible
 -- | conformity to a typeclass function.
@@ -228,9 +231,26 @@ mxArraySetAll :: MXArrayComponent a => MXArray a -> [a] -> IO ()
 mxArraySetAll a = mxArraySetList a mStart
 
 mxArrayGetFirst :: MXArrayComponent a => MXArray a -> MIO (Either String a)
-mxArrayGetFirst arr
-  | isMNull arr = pure $ Left "Couldn't get first element of null array"
-  | otherwise = Right <$> mxArrayGetOffset arr 0
+mxArrayGetFirst arr = mxArrayGetSafe arr 0
+
+mxArrayGetLast :: MXArrayComponent a => MXArray a -> MIO (Either String a)
+mxArrayGetLast arr = do
+  arrLen <- mxArrayLength arr
+  mxArrayGetSafe arr (arrLen - 1)
+
+-- |Like mxArrayGetOffset but safe.
+mxArrayGetSafe :: forall a. MXArrayComponent a => MXArray a -> Int -> MIO (Either String a)
+mxArrayGetSafe arr ix
+  | isMNull arr = pure $ Left "Couldn't get element of null array"
+  | otherwise = do
+    arrLen <- mxArrayLength arr
+    safeGetElem arrLen ix
+  where
+    safeGetElem :: Int -> Int -> MIO (Either String a)
+    safeGetElem aLen aIx
+      | aIx < aLen = Right <$> mxArrayGetOffset arr aIx
+      | otherwise = pure $ Left $ "Couldn't get element at index "
+        <> (show aIx) <> " of " <> (show aLen) <> "-length array"
 
 -- |Safely cast a generic array to a type, or return Nothing if the array does not have the proper type
 castMXArray :: forall a. MXArrayComponent a => MAnyArray -> MIO (Maybe (MXArray a))
