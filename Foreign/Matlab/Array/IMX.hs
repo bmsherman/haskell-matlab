@@ -154,8 +154,8 @@ imxData a = do
   imxc MXClassStruct False      = do
     s <- mxArraySize a'
     fv <- mxArrayGetAll a'
-    f <- if null fv then mStructFields a' else return (map fst (DM.toList $ mStruct (head fv)))
-    listIMXStruct f s =.< mapM imxData (concatMap (map snd . DM.toList . mStruct) fv)
+    f <- if null fv then mStructFields a' else return (map fst (DM.toList $ _mStruct (head fv)))
+    listIMXStruct f s =.< mapM imxData (concatMap (map snd . DM.toList . _mStruct) fv)
   imxc MXClassLogical False     = IMXLogical    =.< imxa return
   imxc MXClassChar False        = IMXChar       =.< imxa return
   imxc MXClassDouble False      = IMXDouble     =.< imxa return

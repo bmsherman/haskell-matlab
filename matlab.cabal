@@ -42,6 +42,7 @@ library
                       array,
                       filepath,
                       path,
+		      profunctors >= 5.3,
                       Cabal < 3.0
   Exposed-modules:    Foreign.Matlab,
                       Foreign.Matlab.Types,
