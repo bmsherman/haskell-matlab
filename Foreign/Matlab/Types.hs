@@ -37,7 +37,7 @@ module Foreign.Matlab.Types (
     MXArray,
     MAny, MAnyArray,
     MCell(MCell), mCell,
-    MStruct,
+    MStruct, mStruct,
     MFun
   ) where
 
