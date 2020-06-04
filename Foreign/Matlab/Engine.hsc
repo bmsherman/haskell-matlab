@@ -33,6 +33,7 @@ type EnginePtr = Ptr EngineType
 
 -- |A Matlab engine instance
 newtype Engine = Engine (ForeignPtr EngineType)
+  deriving Eq
 
 foreign import ccall unsafe engOpen :: CString -> IO EnginePtr
 foreign import ccall unsafe "&" engClose :: FunPtr (EnginePtr -> IO ()) -- CInt
