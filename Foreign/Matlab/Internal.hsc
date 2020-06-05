@@ -1,5 +1,4 @@
 {-# LANGUAGE Trustworthy #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Foreign.Matlab.Internal (
@@ -31,38 +30,18 @@ module Foreign.Matlab.Internal (
     MWSize, MWIndex, MWSignedIndex
   ) where
 
-import           Data.Coerce (Coercible, coerce)
 import qualified Data.Map.Strict as DM
-import           Data.Profunctor
-import           Data.Profunctor.Unsafe
 
 
 import           Foreign
 import           Foreign.C.Types
 import qualified Data.Char
+import           Foreign.Matlab.Optics
 import           Foreign.Matlab.Util
 
 #include <matrix.h>
 
 type MIO a = IO a
-
-
--- Lens types copied in --
-
-type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f t)
-type Iso' s a = Iso s s a a
-
-coerce' :: forall a b. Coercible a b => b -> a
-coerce' = coerce (id :: a -> a)
-{-# INLINE coerce' #-}
-
-coerced :: forall s t a b. (Coercible s a, Coercible t b) => Iso s t a b
-# if __GLASGOW_HASKELL__ >= 710
-coerced l = rmap (fmap coerce') l .# coerce
-# else
-coerced l = case sym Coercion :: Coercion a s of
-              Coercion -> rmap (fmap coerce') l .# coerce
-# endif
 
 boolC :: CBool -> Bool
 boolC = (0 /=)

@@ -53,7 +53,9 @@ library
                       Foreign.Matlab.Array.Able,
                       Foreign.Matlab.Engine.Wrappers,
                       Foreign.Matlab.MAT
-  Other-modules:      Foreign.Matlab.Util, Foreign.Matlab.Internal
+  Other-modules:      Foreign.Matlab.Optics
+                      Foreign.Matlab.Util,
+                      Foreign.Matlab.Internal
   default-extensions: ForeignFunctionInterface,
                       MultiParamTypeClasses,
                       FunctionalDependencies,

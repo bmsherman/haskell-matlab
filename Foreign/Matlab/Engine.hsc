@@ -14,6 +14,7 @@ module Foreign.Matlab.Engine (
     EngineEvalArg(..),
     engineEvalFun,
     engineEvalProc,
+    HasEngine(..), SetEngine(..),
     qt
   ) where
 
@@ -23,6 +24,7 @@ import Foreign.C.String
 import Foreign.C.Types
 import Data.List
 import Foreign.Matlab.Array (createMXScalar)
+import Foreign.Matlab.Optics
 import Foreign.Matlab.Util
 import Foreign.Matlab.Internal
 
@@ -30,6 +32,16 @@ import Foreign.Matlab.Internal
 
 data EngineType
 type EnginePtr = Ptr EngineType
+
+
+class HasEngine env where
+  getEngine :: env -> Engine
+
+class HasEngine env => SetEngine env where
+  setEngine :: env -> Engine -> env
+
+  engine :: Lens' env Engine
+  engine = lens getEngine setEngine
 
 -- |A Matlab engine instance
 newtype Engine = Engine (ForeignPtr EngineType)
