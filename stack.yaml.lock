@@ -3,7 +3,35 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: unexceptionalio-0.5.1@sha256:dfa3da738047ea55825be916559083fe3f0460ec699b3b10b7337edece7f43b3,1721
+    pantry-tree:
+      size: 273
+      sha256: efb406a2a61b558b72dcbd6fb127a77d0cb3b6a72a11fc31cd85be9b079ed98f
+  original:
+    hackage: unexceptionalio-0.5.1
+- completed:
+    hackage: unexceptionalio-trans-0.5.1@sha256:918dc4216966d992d8016453af47d9ccc7d4721557f28e5996fc338c21b22538,1425
+    pantry-tree:
+      size: 229
+      sha256: 23d9ba4f0324d9608e8524b7a1adbef7b33cdff7de263bb3f528e4172726b915
+  original:
+    hackage: unexceptionalio-trans-0.5.1
+- completed:
+    cabal-file:
+      size: 1507
+      sha256: d46e92094149202e4a6709ed23c8a7df53c0002723124d63eb418a7d1baf60ec
+    name: haskell-zio
+    version: 0.1.0.0
+    git: https://github.com/bbarker/haskell-zio.git
+    pantry-tree:
+      size: 737
+      sha256: 6bf04c1496d75175464d1b889d7e2e5c6d4208db53df43c340f1fb9b5341f28e
+    commit: 5e790a1d25b2950d167bb44124e6a129a6615b69
+  original:
+    git: https://github.com/bbarker/haskell-zio.git
+    commit: 5e790a1d25b2950d167bb44124e6a129a6615b69
 snapshots:
 - completed:
     size: 524996
