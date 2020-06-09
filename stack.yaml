@@ -19,17 +19,6 @@
 # resolver: https://example.com/snapshots/2018-01-01.yaml
 resolver: lts-14.27
 
-# User packages to be built.
-# Various formats can be used as shown in the example below.
-#
-# packages:
-# - some-directory
-# - https://example.com/foo/bar/baz-0.0.2.tar.gz
-#   subdirs:
-#   - auto-update
-#   - wai
-packages:
-- .
 # Dependency packages to be pulled from upstream that are not in the resolver.
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
@@ -43,7 +32,7 @@ extra-deps:
   - unexceptionalio-0.5.1
   - unexceptionalio-trans-0.5.1
   - git : https://github.com/bbarker/haskell-zio.git
-    commit: 5e790a1d25b2950d167bb44124e6a129a6615b69
+    commit: cef6eb5d1fcdc7bf21b1ee0edacd4b5f63270cd8
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
