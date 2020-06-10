@@ -34,6 +34,7 @@ import           Data.Complex
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
+import qualified Foreign.Matlab.Array.Internal as AI
 
 import qualified Foreign.Matlab.Array as A
 
@@ -122,25 +123,32 @@ class MXArrayComponent a where
     mxArraySetOffsetList a 0 l
     pure a
 
--- class (MXArrayComponent a, MType mx a, Storable mx) => MXArrayData mx a where
---   withArrayData :: MXArray a -> (Ptr mx -> IO b) -> EIO MatlabException b
---   withArrayDataOff :: MXArray a -> Int -> (Ptr mx -> IO b) -> EIO MatlabException b
---   arrayDataGet :: MXArray a -> Int -> EIO MatlabException a
---   arrayDataSet :: MXArray a -> Int -> a -> EIO MatlabException ()
+mxGetData :: MXArrayPtr -> UIO (Ptr a)
+mxGetData = unsafeFromIO . AI.mxGetData
 
---   arrayDataGetList :: MXArray a -> Int -> Int -> EIO MatlabException [a]
---   arrayDataSetList :: MXArray a -> Int -> [a] -> EIO MatlabException ()
 
---   withArrayData a f = withMXArray a (mxGetData >=> f)
---   withArrayDataOff a o f = withArrayData a (\p -> f (advancePtr p o))
---   arrayDataGet a o   = withArrayDataOff a o (mx2hs .=< peek)
---   arrayDataSet a o v = withArrayDataOff a o (\p -> poke p (hs2mx v))
---   arrayDataGetList a o n = withArrayDataOff a o (map mx2hs .=< peekArray n)
---   arrayDataSetList a o l = withArrayDataOff a o (\p -> pokeArray p (map hs2mx l))
--- #let arrayDataComponent = "\
--- mxArrayGetOffset = arrayDataGet ;\
--- mxArraySetOffset = arrayDataSet ;\
--- mxArrayGetOffsetList = arrayDataGetList ;\
--- mxArraySetOffsetList = arrayDataSetList\
--- "
--- --"
+-- mxGetData :: MXArrayPtr -> UEIO (Ptr a)
+-- mxGetData = uelift . mxGetDataU
+
+class (MXArrayComponent a, MType mx a, Storable mx) => MXArrayData mx a where
+  withArrayData :: MXArray a -> (Ptr mx -> EIO e b) -> EIO e b
+  withArrayDataOff :: MXArray a -> Int -> (Ptr mx -> EIO e b) -> EIO e b
+  arrayDataGet :: MXArray a -> Int -> EIO MatlabException a
+  arrayDataSet :: MXArray a -> Int -> a -> EIO MatlabException ()
+
+  arrayDataGetList :: MXArray a -> Int -> Int -> EIO MatlabException [a]
+  arrayDataSetList :: MXArray a -> Int -> [a] -> EIO MatlabException ()
+
+  withArrayData a f = withMXArray a ((uelift . mxGetData) >=> f)
+  withArrayDataOff a o f = withArrayData a (\p -> f (advancePtr p o))
+  arrayDataGet a o   = withArrayDataOff a o (mx2hs .=< (mxreE . elift .peek))
+  arrayDataSet a o v = withArrayDataOff a o (\p -> (mxreE . elift) $ poke p (hs2mx v))
+  arrayDataGetList a o n = withArrayDataOff a o (map mx2hs .=< (mxreE . elift . (peekArray n)))
+  arrayDataSetList a o l = withArrayDataOff a o (\p -> (mxreE . elift) $ pokeArray p (map hs2mx l))
+#let arrayDataComponent = "\
+mxArrayGetOffset = arrayDataGet ;\
+mxArraySetOffset = arrayDataSet ;\
+mxArrayGetOffsetList = arrayDataGetList ;\
+mxArraySetOffsetList = arrayDataSetList\
+"
+--"

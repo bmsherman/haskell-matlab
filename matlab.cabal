@@ -57,7 +57,8 @@ library
                       Foreign.Matlab.MAT,
                       Foreign.Matlab.ZIOArray
                       Foreign.Matlab.ZIOTypes
-  Other-modules:      Foreign.Matlab.Optics
+  Other-modules:      Foreign.Matlab.Array.Internal,
+                      Foreign.Matlab.Optics,
                       Foreign.Matlab.Util,
                       Foreign.Matlab.Internal
   default-extensions: ForeignFunctionInterface,

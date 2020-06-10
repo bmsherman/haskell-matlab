@@ -60,6 +60,7 @@ import           Foreign.C.Types
 import           Data.Complex
 import qualified Data.Map.Strict as DM
 import           Data.Maybe (catMaybes)
+import           Foreign.Matlab.Array.Internal
 import           Foreign.Matlab.Util
 import           Foreign.Matlab.Internal
 import           Foreign.Matlab.Types
@@ -277,8 +278,6 @@ mxCellGetAllOfType :: MXArrayComponent a => MXArray MCell -> MIO [a]
 mxCellGetAllOfType ca = do
   as <- mxCellGetArraysOfType ca
   join <$> (sequence $ mxArrayGetAll <$> as)
-
-foreign import ccall unsafe mxGetData :: MXArrayPtr -> IO (Ptr a)
 
 class (MXArrayComponent a, MType mx a, Storable mx) => MXArrayData mx a where
   withArrayData :: MXArray a -> (Ptr mx -> IO b) -> IO b

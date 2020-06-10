@@ -14,6 +14,7 @@ import           Data.Complex
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
+import qualified Foreign.Matlab.Array.Internal as AI
 
 import qualified Foreign.Matlab.EIOArray as EA
 

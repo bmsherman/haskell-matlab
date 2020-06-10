@@ -27,11 +27,11 @@ packages:
     git: https://github.com/bbarker/haskell-zio.git
     pantry-tree:
       size: 727
-      sha256: 02be16b3ef71eb93546fd8070ae5688b7f79781eee084e8f3f2a1bb8d75f26ec
-    commit: 0431cc71e36ea1f00382ffe9a2ceb2fae5c406fa
+      sha256: 360248f10ffa16b6eade692b74eb430a577e4b5096968fc1ca13168a333db484
+    commit: 625cbfc0b68673edb63a5535304c5970c38fb4ed
   original:
     git: https://github.com/bbarker/haskell-zio.git
-    commit: 0431cc71e36ea1f00382ffe9a2ceb2fae5c406fa
+    commit: 625cbfc0b68673edb63a5535304c5970c38fb4ed
 snapshots:
 - completed:
     size: 524996
