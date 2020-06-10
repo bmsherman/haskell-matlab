@@ -87,7 +87,6 @@ mxArrayClass a
 
 ndims :: MWSize -> Ptr MWSize -> IO MSize
 ndims n s = map ii =.< peekArray (ii n) s
---nsubs = ndims
 
 withNSubs :: With MSubs (MWSize, Ptr MWSize) (IO a)
 withNSubs l f = withArrayLen (map ii l) (\l a -> f (ii l, a))

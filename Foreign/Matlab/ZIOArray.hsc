@@ -8,11 +8,20 @@ Functions here are primarily thin wrappers to the underlying Matlab functions, a
 
 module Foreign.Matlab.ZIOArray where
 
-import           ZIO.Trans
+import           Data.Complex
+import           Foreign
+import           Foreign.C.String
+import           Foreign.C.Types
 
 import qualified Foreign.Matlab.EIOArray as EA
+
+import           Foreign.Matlab.Internal
 import           Foreign.Matlab.Types
 import           Foreign.Matlab.ZIOTypes
+import           ZIO.Trans
 
 mxArrayClass :: MXArray a -> ZIO r MatlabException MXClass
 mxArrayClass = ezlift . EA.mxArrayClass
+
+mxArrayIsComplex :: MXArray a -> ZIO r MatlabException Bool
+mxArrayIsComplex = ezlift . EA.mxArrayIsComplex

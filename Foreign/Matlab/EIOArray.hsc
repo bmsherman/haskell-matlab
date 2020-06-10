@@ -6,13 +6,33 @@ Functions here are primarily thin wrappers to the underlying Matlab functions, a
 
 |-}
 
-module Foreign.Matlab.EIOArray where
+module Foreign.Matlab.EIOArray (
+    -- * Array manipulation
+    A.anyMXArray
+  , A.MNullArray, castMNull
+  , mxArrayClass
+  , mxArrayIsComplex
+  ) where
 
-import           ZIO.Trans
+import           Data.Complex
+import           Foreign
+import           Foreign.C.String
+import           Foreign.C.Types
 
 import qualified Foreign.Matlab.Array as A
+
+import           Foreign.Matlab.Internal
 import           Foreign.Matlab.Types
 import           Foreign.Matlab.ZIOTypes
+import           ZIO.Trans
 
 mxArrayClass :: MXArray a -> EIO MatlabException MXClass
 mxArrayClass = mxreE . elift . A.mxArrayClass
+
+mxArrayIsComplex :: MXArray a -> EIO MatlabException Bool
+mxArrayIsComplex = mxreE . elift . A.mxArrayIsComplex
+
+castMNull :: MAnyArray -> EIO MatlabException A.MNullArray
+castMNull a
+  | isMNull a = pure $ unsafeCastMXArray a
+  | otherwise = throwError MXNothing
