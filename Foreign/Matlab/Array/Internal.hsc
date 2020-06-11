@@ -124,3 +124,22 @@ foreign import ccall unsafe mxIs%s :: MXArrayPtr -> IO CBool\n\
 #numarray Uint16
 #numarray Uint32
 #numarray Uint64
+
+foreign import ccall unsafe mxIsCell :: MXArrayPtr -> IO CBool
+foreign import ccall unsafe mxCreateCellArray :: MWSize -> Ptr MWSize -> IO MXArrayPtr
+foreign import ccall unsafe mxGetCell :: MXArrayPtr -> MWIndex -> IO MXArrayPtr
+foreign import ccall unsafe mxSetCell :: MXArrayPtr -> MWIndex -> MXArrayPtr -> IO ()
+
+isMXArrayMCell :: MXArray MCell -> IO Bool
+isMXArrayMCell a = boolC =.< withMXArray a mxIsCell
+
+createMXArrayMCell :: MSize -> MIO (MXArray MCell)
+createMXArrayMCell s = withNDims s (uncurry mxCreateCellArray) >>= mkMXArray
+
+-- |Get a the specified cell element (not a copy).
+mxArrayGetOffsetMCell :: MXArray MCell -> Int -> MIO MCell
+mxArrayGetOffsetMCell a o = withMXArray a (\a -> mxGetCell a (ii o) >>= mkMXArray >.= MCell)
+
+-- |Set an element in a cell array to the specified value. The cell takes ownership of the array: and no copy is made. Any existing value should be freed first.
+mxArraySetOffsetMCell :: MXArray MCell -> Int -> MCell -> MIO ()
+mxArraySetOffsetMCell a o (MCell v) = withMXArray a (\a -> withMXArray v (mxSetCell a (ii o)))

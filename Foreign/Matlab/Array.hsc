@@ -328,7 +328,7 @@ mxArrayGetOffsetList = arrayDataGetList ;\
 mxArraySetOffsetList = arrayDataSetList\
   \n\
 instance MXArrayData MX%s M%s\
-", #t, #t, #t, #t, #t, #t
+", #t, #t, #t, #t, #t
 
 instance MXArrayComponent MDouble where
   isMXArray = isMXArrayMDouble
@@ -349,17 +349,13 @@ instance MXArrayData MXDouble MDouble
 #numarray Uint64
 
 
-foreign import ccall unsafe mxIsCell :: MXArrayPtr -> IO CBool
-foreign import ccall unsafe mxCreateCellArray :: MWSize -> Ptr MWSize -> IO MXArrayPtr
-foreign import ccall unsafe mxGetCell :: MXArrayPtr -> MWIndex -> IO MXArrayPtr
-foreign import ccall unsafe mxSetCell :: MXArrayPtr -> MWIndex -> MXArrayPtr -> IO ()
 instance MXArrayComponent MCell where
-  isMXArray a = boolC =.< withMXArray a mxIsCell
-  createMXArray s = withNDims s (uncurry mxCreateCellArray) >>= mkMXArray
+  isMXArray = isMXArrayMCell
+  createMXArray = createMXArrayMCell
   -- Get a the specified cell element (not a copy).
-  mxArrayGetOffset a o = withMXArray a (\a -> mxGetCell a (ii o) >>= mkMXArray >.= MCell)
+  mxArrayGetOffset = mxArrayGetOffsetMCell
   -- Set an element in a cell array to the specified value. The cell takes ownership of the array: and no copy is made. Any existing value should be freed first.
-  mxArraySetOffset a o (MCell v) = withMXArray a (\a -> withMXArray v (mxSetCell a (ii o)))
+  mxArraySetOffset = mxArraySetOffsetMCell
 
 -- |A (array of) structs
 type MStructArray = MXArray MStruct

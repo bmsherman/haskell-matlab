@@ -183,6 +183,8 @@ instance MXArrayComponent MLogical where
 instance MXArrayData MXLogical MLogical where
   withArrayData a f = (mxreE . elift) $ AI.withArrayDataMLogical a f
 
+-- Checkpoint 1
+
 instance MXArrayComponent MChar where
   isMXArray = mxreE . elift . AI.isMXArrayMChar
   createMXArray = mxreE . elift . AI.createMXArrayMChar
@@ -195,7 +197,7 @@ instance MXArrayData MXChar MChar where
 
 #let numarray t = "\
 instance MXArrayComponent M%s where\n\
-  isMXArray a = boolC =.< withMXArray a mxIs%s\n\
+  isMXArray a = mxreE . elift $ boolC =.< withMXArray a AI.mxIs%s\n\
   createMXArray s = mxreE . elift $ AI.withNDims s (uncurry $ AI.createNumericArray (mxClassOf (undefined :: M%s)) False) >>= mkMXArray\n\
   \
 mxArrayGetOffset as i = arrayDataGet as i ;\
@@ -204,7 +206,7 @@ mxArrayGetOffsetList a o n = arrayDataGetList a o n ;\
 mxArraySetOffsetList a o v = arrayDataSetList a o v \
   \n\
 instance MXArrayData MX%s M%s\
-", #t
+", #t, #t, #t, #t, #t
 
 instance MXArrayComponent MDouble where
   isMXArray = mxreE . elift . AI.isMXArrayMDouble
@@ -224,7 +226,15 @@ instance MXArrayData MXDouble MDouble
 #numarray Uint32
 #numarray Uint64
 
--- mxArrayGetOffset as i = mxreE . elift $ arrayDataGet as i ;\
--- mxArraySetOffset as i a = mxreE . elift $ arrayDataSet as i a ;\
--- mxArrayGetOffsetList a o n = mxreE . elift $ arrayDataGetList a o n ;\
--- mxArraySetOffsetList a o v = mxreE . elift $ arrayDataSetList a o v \
+instance MXArrayComponent MCell where
+  isMXArray = mxreE . elift . AI.isMXArrayMCell
+  createMXArray = mxreE . elift . AI.createMXArrayMCell
+  -- |Get a the specified cell element (not a copy).
+  mxArrayGetOffset a o = mxreE . elift $ AI.mxArrayGetOffsetMCell a o
+  -- |Set an element in a cell array to the specified value. The cell takes ownership of the array:
+  -- |and no copy is made. Any existing value should be freed first.
+  mxArraySetOffset a o mcv = mxreE . elift $ AI.mxArraySetOffsetMCell a o mcv
+
+
+
+
