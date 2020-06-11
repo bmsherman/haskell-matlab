@@ -20,18 +20,18 @@ packages:
     hackage: unexceptionalio-trans-0.5.1
 - completed:
     cabal-file:
-      size: 1497
-      sha256: 32c918b65cc7e93ed8c8dd63b7db47243b9f674d4e6eebe7971c2ace790c0034
+      size: 1537
+      sha256: 8cc58d3cdd033fcc6dfc0aee062bb8b78dc68fa19917223a958a059e329ac8e3
     name: zio
     version: 0.1.0.0
     git: https://github.com/bbarker/haskell-zio.git
     pantry-tree:
       size: 727
-      sha256: 360248f10ffa16b6eade692b74eb430a577e4b5096968fc1ca13168a333db484
-    commit: 625cbfc0b68673edb63a5535304c5970c38fb4ed
+      sha256: 0113be0e8e23a1c244eae34ca4dfd4e29cbae6820c111fd1479322ccc6f6a9c5
+    commit: c113c27fc41dfc5c75db441651d5df09d4b78b2a
   original:
     git: https://github.com/bbarker/haskell-zio.git
-    commit: 625cbfc0b68673edb63a5535304c5970c38fb4ed
+    commit: c113c27fc41dfc5c75db441651d5df09d4b78b2a
 snapshots:
 - completed:
     size: 524996

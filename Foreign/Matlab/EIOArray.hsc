@@ -44,6 +44,8 @@ import           Foreign.Matlab.Util
 import           Foreign.Matlab.ZIOTypes
 import           ZIO.Trans
 
+#include <matrix.h>
+
 mxArrayClass :: MXArray a -> EIO MatlabException MXClass
 mxArrayClass = mxreE . elift . A.mxArrayClass
 
@@ -126,25 +128,25 @@ class MXArrayComponent a where
 mxGetData :: MXArrayPtr -> UIO (Ptr a)
 mxGetData = unsafeFromIO . AI.mxGetData
 
-
--- mxGetData :: MXArrayPtr -> UEIO (Ptr a)
--- mxGetData = uelift . mxGetDataU
-
 class (MXArrayComponent a, MType mx a, Storable mx) => MXArrayData mx a where
-  withArrayData :: MXArray a -> (Ptr mx -> EIO e b) -> EIO e b
-  withArrayDataOff :: MXArray a -> Int -> (Ptr mx -> EIO e b) -> EIO e b
+  withArrayData :: MXArray a -> (Ptr mx -> IO b) -> EIO MatlabException b
+  withArrayData a f = mxreE . elift $ AI.withArrayDataDef a f
+
+  withArrayDataOff :: MXArray a -> Int -> (Ptr mx -> IO b) -> EIO MatlabException b
+  withArrayDataOff a o f = mxreE . elift $ AI.withArrayDataOffDef a o f
+
   arrayDataGet :: MXArray a -> Int -> EIO MatlabException a
+  arrayDataGet a o = mxreE . elift $ AI.arrayDataGetDef a o
+
   arrayDataSet :: MXArray a -> Int -> a -> EIO MatlabException ()
+  arrayDataSet a o v = mxreE . elift $ AI.arrayDataSetDef a o v
 
   arrayDataGetList :: MXArray a -> Int -> Int -> EIO MatlabException [a]
-  arrayDataSetList :: MXArray a -> Int -> [a] -> EIO MatlabException ()
+  arrayDataGetList a o n = mxreE . elift $ AI.arrayDataGetListDef a o n
 
-  withArrayData a f = withMXArray a ((uelift . mxGetData) >=> f)
-  withArrayDataOff a o f = withArrayData a (\p -> f (advancePtr p o))
-  arrayDataGet a o   = withArrayDataOff a o (mx2hs .=< (mxreE . elift .peek))
-  arrayDataSet a o v = withArrayDataOff a o (\p -> (mxreE . elift) $ poke p (hs2mx v))
-  arrayDataGetList a o n = withArrayDataOff a o (map mx2hs .=< (mxreE . elift . (peekArray n)))
-  arrayDataSetList a o l = withArrayDataOff a o (\p -> (mxreE . elift) $ pokeArray p (map hs2mx l))
+  arrayDataSetList :: MXArray a -> Int -> [a] -> EIO MatlabException ()
+  arrayDataSetList a o l = mxreE . elift $ AI.arrayDataSetListDef a o l
+
 #let arrayDataComponent = "\
 mxArrayGetOffset = arrayDataGet ;\
 mxArraySetOffset = arrayDataSet ;\
@@ -152,3 +154,32 @@ mxArrayGetOffsetList = arrayDataGetList ;\
 mxArraySetOffsetList = arrayDataSetList\
 "
 --"
+
+mxIsLogical :: MXArrayPtr -> UIO CBool
+mxIsLogical = unsafeFromIO . AI.mxIsLogical
+
+mxCreateLogicalArray :: MWSize -> Ptr MWSize -> UIO MXArrayPtr
+mxCreateLogicalArray sz psz = unsafeFromIO $ AI.mxCreateLogicalArray sz psz
+
+mxGetLogicals :: MXArrayPtr -> UIO (Ptr MXLogical)
+mxGetLogicals = unsafeFromIO . AI.mxGetLogicals
+
+mxCreateLogicalScalar :: CBool -> UIO MXArrayPtr
+mxCreateLogicalScalar = unsafeFromIO . AI.mxCreateLogicalScalar
+
+mxIsLogicalScalar :: MXArrayPtr -> UIO CBool
+mxIsLogicalScalar = unsafeFromIO . AI.mxIsLogicalScalar
+
+mxIsLogicalScalarTrue :: MXArrayPtr -> UIO CBool
+mxIsLogicalScalarTrue = unsafeFromIO . AI.mxIsLogicalScalarTrue
+
+instance MXArrayComponent MLogical where
+  isMXArray = mxreE . elift . AI.isMXArrayMLogical
+  createMXArray = mxreE . elift . AI.createMXArrayMLogical
+  createMXScalar = mxreE . elift . AI.createMXScalarMLogical
+  isMXScalar = mxreE . elift . AI.isMXScalarMLogical
+  mxScalarGet = mxreE . elift . AI.mxScalarGetMLogical
+  #arrayDataComponent
+
+instance MXArrayData MXLogical MLogical where
+  withArrayData a f = (mxreE . elift) $ AI.withArrayDataMLogical a f

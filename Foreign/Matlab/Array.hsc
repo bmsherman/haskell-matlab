@@ -86,14 +86,6 @@ mxArrayClass a
   | isMNull a = pure $ MXClassNull
   | otherwise = withMXArray a mxGetClassID >.= mx2hs
 
-ndims :: MWSize -> Ptr MWSize -> IO MSize
-ndims n s = map ii =.< peekArray (ii n) s
-
-withNSubs :: With MSubs (MWSize, Ptr MWSize) (IO a)
-withNSubs l f = withArrayLen (map ii l) (\l a -> f (ii l, a))
-withNDims :: With MSize (MWSize, Ptr MWSize) (IO a)
-withNDims = withNSubs . realMSize
-
 foreign import ccall unsafe mxGetNumberOfDimensions :: MXArrayPtr -> IO MWSize
 foreign import ccall unsafe mxGetDimensions :: MXArrayPtr -> IO (Ptr MWSize)
 -- |Get the size (dimensions) of an array
@@ -281,19 +273,23 @@ mxCellGetAllOfType ca = do
 
 class (MXArrayComponent a, MType mx a, Storable mx) => MXArrayData mx a where
   withArrayData :: MXArray a -> (Ptr mx -> IO b) -> IO b
+  withArrayData = withArrayDataDef
+
   withArrayDataOff :: MXArray a -> Int -> (Ptr mx -> IO b) -> IO b
+  withArrayDataOff = withArrayDataOffDef
+
   arrayDataGet :: MXArray a -> Int -> IO a
+  arrayDataGet = arrayDataGetDef
+
   arrayDataSet :: MXArray a -> Int -> a -> IO ()
+  arrayDataSet = arrayDataSetDef
 
   arrayDataGetList :: MXArray a -> Int -> Int -> IO [a]
+  arrayDataGetList = arrayDataGetListDef
+  
   arrayDataSetList :: MXArray a -> Int -> [a] -> IO ()
+  arrayDataSetList = arrayDataSetListDef
 
-  withArrayData a f = withMXArray a (mxGetData >=> f)
-  withArrayDataOff a o f = withArrayData a (\p -> f (advancePtr p o))
-  arrayDataGet a o   = withArrayDataOff a o (mx2hs .=< peek)
-  arrayDataSet a o v = withArrayDataOff a o (\p -> poke p (hs2mx v))
-  arrayDataGetList a o n = withArrayDataOff a o (map mx2hs .=< peekArray n)
-  arrayDataSetList a o l = withArrayDataOff a o (\p -> pokeArray p (map hs2mx l))
 #let arrayDataComponent = "\
 mxArrayGetOffset = arrayDataGet ;\
 mxArraySetOffset = arrayDataSet ;\
@@ -302,21 +298,15 @@ mxArraySetOffsetList = arrayDataSetList\
 "
 --"
 
-foreign import ccall unsafe mxIsLogical :: MXArrayPtr -> IO CBool
-foreign import ccall unsafe mxCreateLogicalArray :: MWSize -> Ptr MWSize -> IO MXArrayPtr
-foreign import ccall unsafe mxGetLogicals :: MXArrayPtr -> IO (Ptr MXLogical)
-foreign import ccall unsafe mxCreateLogicalScalar :: CBool -> IO MXArrayPtr
-foreign import ccall unsafe mxIsLogicalScalar :: MXArrayPtr -> IO CBool
-foreign import ccall unsafe mxIsLogicalScalarTrue :: MXArrayPtr -> IO CBool
 instance MXArrayComponent MLogical where
-  isMXArray a = boolC =.< withMXArray a mxIsLogical
-  createMXArray s = withNDims s (uncurry mxCreateLogicalArray) >>= mkMXArray
-  createMXScalar = mxCreateLogicalScalar . cBool >=> mkMXArray
-  isMXScalar a = boolC =.< withMXArray a mxIsLogicalScalar
-  mxScalarGet a = boolC =.< withMXArray a mxIsLogicalScalarTrue
+  isMXArray = isMXArrayMLogical
+  createMXArray = createMXArrayMLogical
+  createMXScalar = createMXScalarMLogical
+  isMXScalar = isMXScalarMLogical
+  mxScalarGet = mxScalarGetMLogical
   #arrayDataComponent
 instance MXArrayData MXLogical MLogical where
-  withArrayData a f = withMXArray a (mxGetLogicals >=> f)
+  withArrayData = withArrayDataMLogical
 
 foreign import ccall unsafe mxIsChar :: MXArrayPtr -> IO CBool
 foreign import ccall unsafe mxCreateCharArray :: MWSize -> Ptr MWSize -> IO MXArrayPtr
