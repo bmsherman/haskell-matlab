@@ -308,25 +308,16 @@ instance MXArrayComponent MLogical where
 instance MXArrayData MXLogical MLogical where
   withArrayData = withArrayDataMLogical
 
-foreign import ccall unsafe mxIsChar :: MXArrayPtr -> IO CBool
-foreign import ccall unsafe mxCreateCharArray :: MWSize -> Ptr MWSize -> IO MXArrayPtr
-foreign import ccall unsafe mxGetChars :: MXArrayPtr -> IO (Ptr MXChar)
-foreign import ccall unsafe mxCreateStringFromNChars :: CString -> MWSize -> IO MXArrayPtr
 instance MXArrayComponent MChar where
-  isMXArray a = boolC =.< withMXArray a mxIsChar
-  createMXArray s = withNDims s (uncurry mxCreateCharArray) >>= mkMXArray
-  createRowVector s = 
-    mkMXArray =<< withCStringLen s (\(s,n) -> mxCreateStringFromNChars s (ii n))
+  isMXArray = isMXArrayMChar
+  createMXArray = createMXArrayMChar
+  createRowVector = createRowVectorMChar
   #arrayDataComponent
 instance MXArrayData MXChar MChar where
-  withArrayData a f = withMXArray a (mxGetChars >=> f)
+  withArrayData = withArrayDataMChar
 
-foreign import ccall unsafe mxCreateNumericArray :: MWSize -> Ptr MWSize -> MXClassID -> (#type mxComplexity) -> IO MXArrayPtr
-createNumericArray :: MXClass -> Bool -> MWSize -> Ptr MWSize -> IO MXArrayPtr
-createNumericArray t c n s = mxCreateNumericArray n s (hs2mx t) (if c then (#const mxCOMPLEX) else (#const mxREAL))
 
 #let numarray t = "\
-foreign import ccall unsafe mxIs%s :: MXArrayPtr -> IO CBool\n\
 instance MXArrayComponent M%s where\n\
   isMXArray a = boolC =.< withMXArray a mxIs%s\n\
   createMXArray s = withNDims s (uncurry $ createNumericArray (mxClassOf (undefined :: M%s)) False) >>= mkMXArray\n\
@@ -339,14 +330,11 @@ mxArraySetOffsetList = arrayDataSetList\
 instance MXArrayData MX%s M%s\
 ", #t, #t, #t, #t, #t, #t
 
-foreign import ccall unsafe mxIsDouble :: MXArrayPtr -> IO CBool
-foreign import ccall unsafe mxCreateDoubleScalar :: MXDouble -> IO MXArrayPtr
-foreign import ccall unsafe mxGetScalar :: MXArrayPtr -> IO MXDouble
 instance MXArrayComponent MDouble where
-  isMXArray a = boolC =.< withMXArray a mxIsDouble
-  createMXScalar = mxCreateDoubleScalar . hs2mx >=> mkMXArray
-  mxScalarGet a = withMXArray a mxGetScalar
-  createMXArray s = withNDims s (uncurry $ createNumericArray (mxClassOf (undefined :: Double)) False) >>= mkMXArray
+  isMXArray = isMXArrayMDouble
+  createMXScalar = createMXScalarMDouble
+  mxScalarGet = mxScalarGetMDouble
+  createMXArray = createMXArrayMDouble
   #arrayDataComponent
 instance MXArrayData MXDouble MDouble
 

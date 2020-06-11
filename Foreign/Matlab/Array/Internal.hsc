@@ -69,3 +69,58 @@ mxScalarGetMLogical a = boolC =.< withMXArray a mxIsLogicalScalarTrue
 
 withArrayDataMLogical :: MXArray MLogical -> (Ptr MXLogical -> IO b) -> IO b
 withArrayDataMLogical a f = withMXArray a (mxGetLogicals >=> f)
+
+foreign import ccall unsafe mxIsChar :: MXArrayPtr -> IO CBool
+foreign import ccall unsafe mxCreateCharArray :: MWSize -> Ptr MWSize -> IO MXArrayPtr
+foreign import ccall unsafe mxGetChars :: MXArrayPtr -> IO (Ptr MXChar)
+foreign import ccall unsafe mxCreateStringFromNChars :: CString -> MWSize -> IO MXArrayPtr
+
+isMXArrayMChar :: MXArray MChar -> IO Bool
+isMXArrayMChar a = boolC =.< withMXArray a mxIsChar
+
+createMXArrayMChar :: MSize -> MIO (MXArray MChar)
+createMXArrayMChar s = withNDims s (uncurry mxCreateCharArray) >>= mkMXArray
+
+createRowVectorMChar :: [MChar] -> MIO (MXArray MChar)
+createRowVectorMChar s = 
+  mkMXArray =<< withCStringLen s (\(s,n) -> mxCreateStringFromNChars s (ii n))
+
+withArrayDataMChar :: MXArray MChar -> (Ptr MXChar -> IO b) -> IO b
+withArrayDataMChar a f = withMXArray a (mxGetChars >=> f)
+
+
+foreign import ccall unsafe mxCreateNumericArray ::
+  MWSize -> Ptr MWSize -> MXClassID -> (#type mxComplexity) -> IO MXArrayPtr
+
+createNumericArray :: MXClass -> Bool -> MWSize -> Ptr MWSize -> IO MXArrayPtr
+createNumericArray t c n s = mxCreateNumericArray n s (hs2mx t) (if c then (#const mxCOMPLEX) else (#const mxREAL))
+
+foreign import ccall unsafe mxIsDouble :: MXArrayPtr -> IO CBool
+foreign import ccall unsafe mxCreateDoubleScalar :: MXDouble -> IO MXArrayPtr
+foreign import ccall unsafe mxGetScalar :: MXArrayPtr -> IO MXDouble
+
+isMXArrayMDouble :: MXArray MDouble -> IO Bool
+isMXArrayMDouble a = boolC =.< withMXArray a mxIsDouble
+
+createMXScalarMDouble :: MDouble -> MIO (MXArray MDouble)
+createMXScalarMDouble = mxCreateDoubleScalar . hs2mx >=> mkMXArray
+
+mxScalarGetMDouble :: MXArray a -> MIO MDouble
+mxScalarGetMDouble a = withMXArray a mxGetScalar
+
+createMXArrayMDouble :: MSize -> MIO (MXArray MXDouble)
+createMXArrayMDouble s = withNDims s (uncurry $ createNumericArray (mxClassOf (undefined :: Double)) False) >>= mkMXArray
+
+#let numarray t = "\
+foreign import ccall unsafe mxIs%s :: MXArrayPtr -> IO CBool\n\
+", #t, #t, #t, #t, #t, #t
+
+#numarray Single
+#numarray Int8
+#numarray Int16
+#numarray Int32
+#numarray Int64
+#numarray Uint8
+#numarray Uint16
+#numarray Uint32
+#numarray Uint64

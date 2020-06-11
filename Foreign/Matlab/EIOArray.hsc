@@ -180,6 +180,51 @@ instance MXArrayComponent MLogical where
   isMXScalar = mxreE . elift . AI.isMXScalarMLogical
   mxScalarGet = mxreE . elift . AI.mxScalarGetMLogical
   #arrayDataComponent
-
 instance MXArrayData MXLogical MLogical where
   withArrayData a f = (mxreE . elift) $ AI.withArrayDataMLogical a f
+
+instance MXArrayComponent MChar where
+  isMXArray = mxreE . elift . AI.isMXArrayMChar
+  createMXArray = mxreE . elift . AI.createMXArrayMChar
+  createRowVector = mxreE . elift . AI.createRowVectorMChar
+
+  #arrayDataComponent
+instance MXArrayData MXChar MChar where
+  withArrayData a f = (mxreE . elift) $ AI.withArrayDataMChar a f
+
+
+#let numarray t = "\
+instance MXArrayComponent M%s where\n\
+  isMXArray a = boolC =.< withMXArray a mxIs%s\n\
+  createMXArray s = mxreE . elift $ AI.withNDims s (uncurry $ AI.createNumericArray (mxClassOf (undefined :: M%s)) False) >>= mkMXArray\n\
+  \
+mxArrayGetOffset as i = arrayDataGet as i ;\
+mxArraySetOffset as i a = arrayDataSet as i a ;\
+mxArrayGetOffsetList a o n = arrayDataGetList a o n ;\
+mxArraySetOffsetList a o v = arrayDataSetList a o v \
+  \n\
+instance MXArrayData MX%s M%s\
+", #t
+
+instance MXArrayComponent MDouble where
+  isMXArray = mxreE . elift . AI.isMXArrayMDouble
+  createMXScalar = mxreE . elift . AI.createMXScalarMDouble
+  mxScalarGet = mxreE . elift . AI.mxScalarGetMDouble
+  createMXArray = mxreE . elift . AI.createMXArrayMDouble
+  #arrayDataComponent
+instance MXArrayData MXDouble MDouble
+
+#numarray Single
+#numarray Int8
+#numarray Int16
+#numarray Int32
+#numarray Int64
+#numarray Uint8
+#numarray Uint16
+#numarray Uint32
+#numarray Uint64
+
+-- mxArrayGetOffset as i = mxreE . elift $ arrayDataGet as i ;\
+-- mxArraySetOffset as i a = mxreE . elift $ arrayDataSet as i a ;\
+-- mxArrayGetOffsetList a o n = mxreE . elift $ arrayDataGetList a o n ;\
+-- mxArraySetOffsetList a o v = mxreE . elift $ arrayDataSetList a o v \
