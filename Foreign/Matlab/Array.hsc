@@ -20,11 +20,7 @@ module Foreign.Matlab.Array (
     mIndexOffset,
 
     -- * Array element access
-    MXArrayComponent (mxArrayGetOffset, mxArraySetOffset
-      , mxArrayGetOffsetList, mxArraySetOffsetList
-      , mxScalarGet, isMXScalar
-      , createMXArray, createMXScalar
-      , createColVector, createRowVector),
+    MXArrayComponent(..),
     castMXArray,
     -- | array element access
     mxArrayGet, mxArraySet,
@@ -58,8 +54,6 @@ import           Data.Foldable (toList)
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
-import           Data.Complex
-import qualified Data.Map.Strict as DM
 import           Data.Maybe (catMaybes)
 import           Foreign.Matlab.Array.Internal
 import           Foreign.Matlab.Util

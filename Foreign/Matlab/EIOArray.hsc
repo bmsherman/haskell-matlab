@@ -23,17 +23,7 @@ module Foreign.Matlab.EIOArray (
   , mIndexOffset
 
     -- * Array element access
-  , MXArrayComponent (mxArrayGetOffset, mxArraySetOffset
-      , mxArrayGetOffsetList, mxArraySetOffsetList
-      , mxScalarGet, isMXScalar
-      , createMXArray, createMXScalar
-      , createColVector, createRowVector)
-    -- * Array element access
-  , MXArrayComponent (mxArrayGetOffset, mxArraySetOffset
-      , mxArrayGetOffsetList, mxArraySetOffsetList
-      , mxScalarGet, isMXScalar
-      , createMXArray, createMXScalar
-      , createColVector, createRowVector)
+  , MXArrayComponent(..)
   , castMXArray
     -- | array element access
   , mxArrayGet, mxArraySet
@@ -62,11 +52,8 @@ module Foreign.Matlab.EIOArray (
 
   ) where
 
-import           Data.Complex
 import           Data.Either.Combinators (mapLeft)
-import           Control.Exception (throw)
 import           Foreign
-import           Foreign.C.String
 import           Foreign.C.Types
 import qualified Foreign.Matlab.Array.Internal as AI
 
