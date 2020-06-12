@@ -357,35 +357,6 @@ instance MXArrayComponent MCell where
   -- Set an element in a cell array to the specified value. The cell takes ownership of the array: and no copy is made. Any existing value should be freed first.
   mxArraySetOffset = mxArraySetOffsetMCell
 
--- |A (array of) structs
-type MStructArray = MXArray MStruct
-
-foreign import ccall unsafe mxIsStruct :: MXArrayPtr -> IO CBool
-foreign import ccall unsafe mxIsObject :: MXArrayPtr -> IO CBool
-
-foreign import ccall unsafe mxCreateStructArray :: MWSize -> Ptr MWSize -> CInt -> Ptr CString -> IO MXArrayPtr
--- |Create an N-Dimensional structure array having the specified fields; initialize all values to 'MNullArray'
-createStruct :: MSize -> [String] -> MIO MStructArray
-createStruct s f =
-  withNDims s (\(nd,d) ->
-    mapWithArrayLen withCString f (\(f,nf) ->
-      mxCreateStructArray nd d (ii nf) f))
-  >>= mkMXArray
-
-foreign import ccall unsafe mxGetNumberOfFields :: MXArrayPtr -> IO CInt
-foreign import ccall unsafe mxGetFieldNameByNumber :: MXArrayPtr -> CInt -> IO CString
-foreign import ccall unsafe mxGetFieldNumber :: MXArrayPtr -> CString -> IO CInt
--- |Get the names of the fields
-mStructFields :: MStructArray -> MIO [String]
-mStructFields a = withMXArray a $ \a -> do
-  n <- mxGetNumberOfFields a
-  forM [0..pred n] (mxGetFieldNameByNumber a >=> peekCString)
-
-foreign import ccall unsafe mxGetField :: MXArrayPtr -> MWIndex -> CString -> IO MXArrayPtr
-foreign import ccall unsafe mxSetField :: MXArrayPtr -> MWIndex -> CString -> MXArrayPtr -> IO ()
-foreign import ccall unsafe mxGetFieldByNumber :: MXArrayPtr -> MWIndex -> CInt -> IO MXArrayPtr
-foreign import ccall unsafe mxSetFieldByNumber :: MXArrayPtr -> MWIndex -> CInt -> MXArrayPtr -> IO ()
-
 -- |Return the contents of the named field for the given element.
 -- |Returns 'MNullArray' on no such field or if the field itself is NULL
 mStructGet :: MStructArray -> MIndex -> String -> MIO MAnyArray
@@ -398,8 +369,6 @@ mStructSet a i f v = do
   o <- mIndexOffset a i
   withMXArray a (\a -> withCString f (withMXArray v . mxSetField a (ii o)))
 
-foreign import ccall unsafe mxAddField :: MXArrayPtr -> CString -> IO CInt
-foreign import ccall unsafe mxRemoveField :: MXArrayPtr -> CInt -> IO ()
 -- |Add a field to a structure array.
 mStructAddField :: MStructArray -> String -> MIO ()
 -- |Remove a field from a structure array. Does nothing if no such field exists.
@@ -413,11 +382,6 @@ mStructRemoveField a f = withMXArray a $ \a -> do
     then fail "mxRemoveField"
     else mxRemoveField a i
 
-structGetOffsetFields :: MStructArray -> [String] -> Int -> IO MStruct
-structGetOffsetFields a f o =
-  MStruct =.< withMXArray a (\a -> DM.fromList <$> 
-    (zipWithM (\f -> ((,) f) .=< (mxGetFieldByNumber a (ii o) >=> mkMXArray)) f [0..]))
-
 -- |Set the fields of a struct index to the given value list.  The list corresponds to the field list and must match in size.
 mStructSetFields :: MStructArray -> MIndex -> [MXArray a] -> MIO ()
 mStructSetFields a i v = do
@@ -425,21 +389,12 @@ mStructSetFields a i v = do
   withMXArray a (\a -> zipWithM_ (\v -> withMXArray v . mxSetFieldByNumber a (ii o)) v [0..])
 
 instance MXArrayComponent MStruct where
-  isMXArray a = liftM2 (||) (boolC =.< withMXArray a mxIsStruct) (boolC =.< withMXArray a mxIsObject)
-  createMXArray s = createStruct s []
-  mxArrayGetOffset a o = do
-    f <- mStructFields a
-    structGetOffsetFields a f o
-  mxArraySetOffset = error "mxArraySet undefined for MStruct: use mStructSet"
-  mxArrayGetOffsetList a o n = do
-    f <- mStructFields a
-    mapM (structGetOffsetFields a f) [o..o+n-1]
-  createMXScalar (MStruct fv) = do
-    a <- createStruct [1] f
-    withMXArray a $ \a -> zipWithM_ (\i v -> withMXArray v (mxSetFieldByNumber a 0 i)) [0..] v
-    pure a
-    where
-      (f,v) = unzip $ DM.toList fv
+  isMXArray = isMXArrayMStruct
+  createMXArray = createMXArrayMStruct
+  mxArrayGetOffset = mxArrayGetOffsetMStruct
+  mxArraySetOffset = mxArraySetOffsetMStruct
+  mxArrayGetOffsetList = mxArrayGetOffsetListMStruct
+  createMXScalar = createMXScalarMStruct
 
 foreign import ccall unsafe mxGetClassName :: MXArrayPtr -> IO CString
 -- |Determine if a struct array is a user defined object, and return its class name, if any.

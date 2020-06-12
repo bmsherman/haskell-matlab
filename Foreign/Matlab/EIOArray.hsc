@@ -31,6 +31,7 @@ module Foreign.Matlab.EIOArray (
   ) where
 
 import           Data.Complex
+import           Control.Exception (throw)
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
@@ -235,6 +236,38 @@ instance MXArrayComponent MCell where
   -- |and no copy is made. Any existing value should be freed first.
   mxArraySetOffset a o mcv = mxreE . elift $ AI.mxArraySetOffsetMCell a o mcv
 
+createStruct :: MSize -> [String] -> EIO MatlabException MStructArray
+createStruct s f = mxreE . elift $ AI.createStruct s f
 
+-- |Get the names of the fields
+mStructFields :: MStructArray -> EIO MatlabException [String]
+mStructFields = mxreE . elift . AI.mStructFields
 
+-- |Return the contents of the named field for the given element.
+-- |Returns 'MNullArray' on no such field or if the field itself is NULL
+mStructGet :: MStructArray -> MIndex -> String -> EIO MatlabException MAnyArray
+mStructGet a i f = mxreE . elift $ A.mStructGet a i f
 
+-- |Sets the contents of the named field for the given element. The input is stored in the array -- no copy is made.
+mStructSet :: MStructArray -> MIndex -> String -> MXArray a -> EIO MatlabException ()
+mStructSet a i f v = mxreE . elift $ A.mStructSet a i f v
+
+-- |Add a field to a structure array.
+mStructAddField :: MStructArray -> String -> EIO MatlabException ()
+mStructAddField a f = mxreE . elift $ A.mStructAddField a f
+
+-- |Remove a field from a structure array. Does nothing if no such field exists.
+mStructRemoveField :: MStructArray -> String -> EIO MatlabException ()
+mStructRemoveField a f = mxreE . elift $ A.mStructRemoveField a f
+
+-- |Set the fields of a struct index to the given value list.  The list corresponds to the field list and must match in size.
+mStructSetFields :: MStructArray -> MIndex -> [MXArray a] -> EIO MatlabException ()
+mStructSetFields a i v = mxreE . elift $ A.mStructSetFields a i v
+
+instance MXArrayComponent MStruct where
+  isMXArray = mxreE . elift . AI.isMXArrayMStruct
+  createMXArray = mxreE . elift . AI.createMXArrayMStruct
+  mxArrayGetOffset a o = mxreE . elift $ AI.mxArrayGetOffsetMStruct a o
+  mxArraySetOffset a i s = mxreE . elift $ AI.mxArraySetOffsetMStruct a i s
+  mxArrayGetOffsetList a o n = mxreE . elift $ AI.mxArrayGetOffsetListMStruct a o n
+  createMXScalar = mxreE . elift . AI.createMXScalarMStruct

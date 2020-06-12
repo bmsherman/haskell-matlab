@@ -143,3 +143,67 @@ mxArrayGetOffsetMCell a o = withMXArray a (\a -> mxGetCell a (ii o) >>= mkMXArra
 -- |Set an element in a cell array to the specified value. The cell takes ownership of the array: and no copy is made. Any existing value should be freed first.
 mxArraySetOffsetMCell :: MXArray MCell -> Int -> MCell -> MIO ()
 mxArraySetOffsetMCell a o (MCell v) = withMXArray a (\a -> withMXArray v (mxSetCell a (ii o)))
+
+foreign import ccall unsafe mxIsStruct :: MXArrayPtr -> IO CBool
+foreign import ccall unsafe mxIsObject :: MXArrayPtr -> IO CBool
+
+foreign import ccall unsafe mxCreateStructArray :: MWSize -> Ptr MWSize -> CInt -> Ptr CString -> IO MXArrayPtr
+
+foreign import ccall unsafe mxGetNumberOfFields :: MXArrayPtr -> IO CInt
+foreign import ccall unsafe mxGetFieldNameByNumber :: MXArrayPtr -> CInt -> IO CString
+foreign import ccall unsafe mxGetFieldNumber :: MXArrayPtr -> CString -> IO CInt
+
+foreign import ccall unsafe mxGetField :: MXArrayPtr -> MWIndex -> CString -> IO MXArrayPtr
+foreign import ccall unsafe mxSetField :: MXArrayPtr -> MWIndex -> CString -> MXArrayPtr -> IO ()
+foreign import ccall unsafe mxGetFieldByNumber :: MXArrayPtr -> MWIndex -> CInt -> IO MXArrayPtr
+foreign import ccall unsafe mxSetFieldByNumber :: MXArrayPtr -> MWIndex -> CInt -> MXArrayPtr -> IO ()
+
+foreign import ccall unsafe mxAddField :: MXArrayPtr -> CString -> IO CInt
+foreign import ccall unsafe mxRemoveField :: MXArrayPtr -> CInt -> IO ()
+
+-- |Create an N-Dimensional structure array having the specified fields; initialize all values to 'MNullArray'
+createStruct :: MSize -> [String] -> MIO MStructArray
+createStruct s f =
+  withNDims s (\(nd,d) ->
+    mapWithArrayLen withCString f (\(f,nf) ->
+      mxCreateStructArray nd d (ii nf) f))
+  >>= mkMXArray
+
+-- |Get the names of the fields
+mStructFields :: MStructArray -> MIO [String]
+mStructFields a = withMXArray a $ \a -> do
+  n <- mxGetNumberOfFields a
+  forM [0..pred n] (mxGetFieldNameByNumber a >=> peekCString)
+
+structGetOffsetFields :: MStructArray -> [String] -> Int -> IO MStruct
+structGetOffsetFields a f o =
+  MStruct =.< withMXArray a (\a -> DM.fromList <$>
+    (zipWithM (\f -> ((,) f) .=< (mxGetFieldByNumber a (ii o) >=> mkMXArray)) f [0..]))
+
+isMXArrayMStruct :: MXArray MStruct -> IO Bool
+isMXArrayMStruct a = liftM2 (||) (boolC =.< withMXArray a mxIsStruct) (boolC =.< withMXArray a mxIsObject)
+
+createMXArrayMStruct :: MSize -> MIO (MXArray MStruct)
+createMXArrayMStruct s = createStruct s []
+
+mxArrayGetOffsetMStruct :: MXArray MStruct -> Int -> MIO MStruct
+mxArrayGetOffsetMStruct a o = do
+  f <- mStructFields a
+  structGetOffsetFields a f o
+
+mxArraySetOffsetMStruct :: MXArray MStruct -> Int -> MStruct -> MIO ()
+mxArraySetOffsetMStruct = error "mxArraySet undefined for MStruct: use mStructSet" -- arrayDataSetDef
+
+
+mxArrayGetOffsetListMStruct :: MXArray MStruct -> Int -> Int -> MIO [MStruct]
+mxArrayGetOffsetListMStruct a o n = do
+  f <- mStructFields a
+  mapM (structGetOffsetFields a f) [o..o+n-1]
+
+createMXScalarMStruct :: MStruct -> MIO (MXArray MStruct)
+createMXScalarMStruct (MStruct fv) = do
+  a <- createStruct [1] f
+  withMXArray a $ \a -> zipWithM_ (\i v -> withMXArray v (mxSetFieldByNumber a 0 i)) [0..] v
+  pure a
+  where
+    (f,v) = unzip $ DM.toList fv

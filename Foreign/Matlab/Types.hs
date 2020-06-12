@@ -37,7 +37,7 @@ module Foreign.Matlab.Types (
     MXArray,
     MAny, MAnyArray,
     MCell(MCell), mCell,
-    MStruct, mStruct,
+    MStruct, MStructArray, mStruct,
     MFun
   ) where
 
@@ -154,3 +154,6 @@ normMSize :: MSize -> MSize
 normMSize [] = []
 normMSize (1:l) = case normMSize l of { [] -> [] ; l -> (1:l) }
 normMSize (x:l) = x : normMSize l
+
+-- |A (array of) structs
+type MStructArray = MXArray MStruct
