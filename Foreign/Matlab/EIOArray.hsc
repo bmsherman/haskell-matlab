@@ -27,11 +27,43 @@ module Foreign.Matlab.EIOArray (
       , mxArrayGetOffsetList, mxArraySetOffsetList
       , mxScalarGet, isMXScalar
       , createMXArray, createMXScalar
-      , createColVector, createRowVector),
+      , createColVector, createRowVector)
+    -- * Array element access
+  , MXArrayComponent (mxArrayGetOffset, mxArraySetOffset
+      , mxArrayGetOffsetList, mxArraySetOffsetList
+      , mxScalarGet, isMXScalar
+      , createMXArray, createMXScalar
+      , createColVector, createRowVector)
+  , castMXArray
+    -- | array element access
+  , mxArrayGet, mxArraySet
+    -- | array list access
+  , mxArrayGetList, mxArraySetList
+  , mxArrayGetAll, mxArraySetAll
+  , mxArrayGetOffsetSafe, mxArrayGetFirst, mxArrayGetLast
+    -- mxArrayGetSafe, --TODO--
+  , fromListIO, cellFromListsIO
+  , isMNull
+
+    -- * Struct access
+    -- |Structs in Matlab are always arrays, and so can be accessed using most array accessors.
+    -- |However, the modification functions such as 'mxArraySet' are not implemented because they could disrupt field data in the entire struct array, and so some specialized functions are necessary.
+  , MStructArray
+  , createStruct
+  , mStructFields
+  , mStructGet, mStructSet
+  , mStructSetFields
+  , mStructAddField, mStructRemoveField
+  , mxCellGetAllOfType, mxCellGetArraysOfType
+
+    -- ** Object access
+    -- |Some structs are also validated (blessed) user objects.
+  , mObjectGetClass, mObjectSetClass
 
   ) where
 
 import           Data.Complex
+import           Data.Either.Combinators (mapLeft)
 import           Control.Exception (throw)
 import           Foreign
 import           Foreign.C.String
@@ -46,6 +78,9 @@ import           Foreign.Matlab.Util
 import           Foreign.Matlab.ZIOTypes
 import           ZIO.Trans
 
+
+-- TODO: consider generic derivation of class instances: A.MXarrayComponent a => MXarrayComponent a
+
 #include <matrix.h>
 
 mxArrayClass :: MXArray a -> EIO MatlabException MXClass
@@ -55,6 +90,14 @@ castMNull :: MAnyArray -> EIO MatlabException A.MNullArray
 castMNull a
   | isMNull a = pure $ unsafeCastMXArray a
   | otherwise = throwError MXNothing
+
+-- |Safely cast a generic array to a type, or return Nothing if the array does not have the proper type
+castMXArray :: forall a. (A.MXArrayComponent a, MXArrayComponent a) => MAnyArray -> EIO MatlabException (MXArray a)
+castMXArray a = do
+  aMay <- mxreE . elift $ A.castMXArray a
+  case aMay of
+    Just arr -> pure arr
+    Nothing -> throwError MXNothing
 
 mxArraySize :: MXArray a -> EIO MatlabException MSize
 mxArraySize = mxreE . elift . A.mxArraySize
@@ -73,6 +116,79 @@ copyMXArray = mxreE . elift . A.copyMXArray
 
 mIndexOffset :: MXArray a -> MIndex -> EIO MatlabException Int
 mIndexOffset a i = (mxreE . elift) $ A.mIndexOffset a i
+
+-- |Get the value of the specified array element.  Does not check bounds.
+mxArrayGet :: MXArrayComponent a => MXArray a -> MIndex -> EIO MatlabException a
+mxArrayGet a i = mIndexOffset a i >>= mxArrayGetOffset a
+
+-- |Set an element in an array to the specified value.  Does not check bounds.
+mxArraySet :: MXArrayComponent a => MXArray a -> MIndex -> a -> EIO MatlabException ()
+mxArraySet a i v = do
+  o <- mIndexOffset a i
+  mxArraySetOffset a o v
+
+-- |@'mxArrayGetList' a i n@ gets the sequential list of @n@ items from array @a@ starting at index @i@.  Does not check bounds.
+mxArrayGetList :: MXArrayComponent a => MXArray a -> MIndex -> Int -> EIO MatlabException [a]
+mxArrayGetList a i n = do
+  o <- mIndexOffset a i
+  n <- if n == -1 then subtract o =.< mxArrayLength a else pure n
+  mxArrayGetOffsetList a o n
+-- |@'mxArraySetList' a i l@ sets the sequential items in array @a@ starting at index @i@ to @l@.  Does not check bounds.
+mxArraySetList :: MXArrayComponent a => MXArray a -> MIndex -> [a] -> EIO MatlabException ()
+mxArraySetList a i l = do
+  o <- mIndexOffset a i
+  mxArraySetOffsetList a o l
+
+-- |Get a flat list of all elements in the array.
+mxArrayGetAll :: MXArrayComponent a => MXArray a -> EIO MatlabException [a]
+mxArrayGetAll a = mxArrayGetList a mStart (-1)
+
+-- |Set a flat list of all elements in the array.
+mxArraySetAll :: MXArrayComponent a => MXArray a -> [a] -> EIO MatlabException ()
+mxArraySetAll a = mxArraySetList a mStart
+
+mxArrayGetFirst :: (A.MXArrayComponent a, MXArrayComponent a) => MXArray a -> EIO MatlabException a
+mxArrayGetFirst arr = mxArrayGetOffsetSafe arr 0
+
+mxArrayGetLast :: (A.MXArrayComponent a, MXArrayComponent a) => MXArray a -> EIO MatlabException a
+mxArrayGetLast arr = do
+  arrLen <- mxArrayLength arr
+  mxArrayGetOffsetSafe arr (arrLen - 1)
+
+-- |Like mxArrayGetOffset but safe.
+mxArrayGetOffsetSafe :: forall a. (A.MXArrayComponent a, MXArrayComponent a)
+  => MXArray a -> Int -> EIO MatlabException a
+mxArrayGetOffsetSafe arr ix = do
+  aEi <- mxreE . elift $ A.mxArrayGetOffsetSafe arr ix
+  liftEither (mapLeft MXLogicalError aEi)
+
+-- | Create and populate an MXArray in one go. Named without 'mx' due to possible
+-- | conformity to a typeclass function.
+fromListIO :: (Foldable t, A.MXArrayComponent a, MXArrayComponent a)
+  => t a -> EIO MatlabException (MXArray a)
+fromListIO = mxreE . elift . A.fromListIO
+
+-- | Like fromListIO but wraps elements in a cell. Most useful for converting a list of strings
+-- | to a MATLAB cell array of strings. Named in conjunction with `fromListIO`, which is used
+-- | as part of the implementation.
+cellFromListsIO :: (Traversable s, Foldable t, A.MXArrayComponent a, MXArrayComponent a)
+  => s (t a) -> EIO MatlabException (MXArray MCell)
+cellFromListsIO = mxreE . elift . A.cellFromListsIO
+
+-- | Extract all arrays of a given type from a Cell Array.
+mxCellGetArraysOfType :: (A.MXArrayComponent a, MXArrayComponent a)
+  => MXArray MCell -> EIO MatlabException ([MXArray a])
+mxCellGetArraysOfType ca = do
+  cellVals <- (fmap . fmap) mCell (mxArrayGetAll ca)
+  sequence $ castMXArray <$> cellVals
+
+-- | A convenience function to extract all arrays of a given type from a Cell Array;
+-- | may have larger dimensions than the original Cell Array due to flattening.
+mxCellGetAllOfType :: (A.MXArrayComponent a, MXArrayComponent a)
+  => MXArray MCell -> EIO MatlabException [a]
+mxCellGetAllOfType ca = do
+  as <- mxCellGetArraysOfType ca
+  join <$> (sequence $ mxArrayGetAll <$> as)
 
 
 -- |The class of standardly typeable array elements
