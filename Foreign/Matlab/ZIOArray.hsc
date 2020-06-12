@@ -16,6 +16,7 @@ import           Foreign.C.String
 import           Foreign.C.Types
 import qualified Foreign.Matlab.Array.Internal as AI
 
+import qualified Foreign.Matlab.Array as A
 import qualified Foreign.Matlab.EIOArray as EA
 
 import           Foreign.Matlab.Internal
@@ -27,5 +28,6 @@ import           ZIO.Trans
 mxArrayClass :: MXArray a -> ZIO r MatlabException MXClass
 mxArrayClass = ezlift . EA.mxArrayClass
 
-mxArrayIsComplex :: MXArray a -> ZIO r MatlabException Bool
+mxArrayIsComplex :: (RealFloat a, MType mx a, Storable mx, A.MXArrayComponent a)
+  => MXArray (MComplex a) -> ZIO r MatlabException Bool
 mxArrayIsComplex = ezlift . EA.mxArrayIsComplex

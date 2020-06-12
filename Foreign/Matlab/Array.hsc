@@ -49,7 +49,8 @@ module Foreign.Matlab.Array (
 
     -- ** Object access
     -- |Some structs are also validated (blessed) user objects.
-    mObjectGetClass, mObjectSetClass
+    mObjectGetClass, mObjectSetClass,
+    isMXArrayMComplex -- Not intended to be public
   ) where
 
 import           Control.Monad
@@ -396,7 +397,7 @@ instance MXArrayComponent MStruct where
   mxArrayGetOffsetList = mxArrayGetOffsetListMStruct
   createMXScalar = createMXScalarMStruct
 
-foreign import ccall unsafe mxGetClassName :: MXArrayPtr -> IO CString
+
 -- |Determine if a struct array is a user defined object, and return its class name, if any.
 mObjectGetClass :: MStructArray -> IO (Maybe String)
 mObjectGetClass a = do
@@ -405,43 +406,23 @@ mObjectGetClass a = do
     then Just =.< withMXArray a (mxGetClassName >=> peekCString)
     else pure Nothing
 
-foreign import ccall unsafe mxSetClassName :: MXArrayPtr -> CString -> IO CInt
 -- |Set classname of an unvalidated object array.  It is illegal to call this function on a previously validated object array.
 mObjectSetClass :: MStructArray -> String -> IO ()
 mObjectSetClass a c = do
   r <- withMXArray a (withCString c . mxSetClassName)
   when (r /= 0) $ fail "mObjectSetClass"
 
-castReal :: MXArray (Complex a) -> MXArray a
-castReal = unsafeCastMXArray
-
-foreign import ccall unsafe mxGetImagData :: MXArrayPtr -> IO (Ptr a)
-withRealDataOff :: MXArrayData mx a => MXArray (Complex a) -> Int -> (Ptr mx -> IO b) -> IO b
-withRealDataOff = withArrayDataOff . castReal
-withImagDataOff :: MXArrayData mx a => MXArray (Complex a) -> Int -> (Ptr mx -> IO b) -> IO b
-withImagDataOff a o f = withMXArray a (mxGetImagData >=> \p -> f (advancePtr p o))
-
-foreign import ccall unsafe mxIsComplex :: MXArrayPtr -> IO CBool
-mxArrayIsComplex :: MXArray a -> IO Bool
-mxArrayIsComplex a = boolC =.< withMXArray a mxIsComplex
-
 -- |Complex array access.
 instance (RealFloat a, MNumeric a, MXArrayData mx a) => MXArrayComponent (MComplex a) where
-  isMXArray a = liftM2 (&&) (isMXArray (castReal a)) (mxArrayIsComplex a)
-  createMXArray s = withNDims s (uncurry $ createNumericArray (mxClassOf (undefined :: a)) True) >>= mkMXArray
+  isMXArray = isMXArrayMComplex
+  createMXArray = createMXArrayMComplex
+  mxArrayGetOffset = mxArrayGetOffsetMComplex
+  mxArraySetOffset = mxArraySetOffsetMComplex
+  mxArrayGetOffsetList = mxArrayGetOffsetListMComplex
+  mxArraySetOffsetList = mxArraySetOffsetListMComplex
 
-  mxArrayGetOffset a o = do
-    r <- withRealDataOff a o (mx2hs .=< peek)
-    c <- withImagDataOff a o (mx2hs .=< peek)
-    pure $ r :+ c
-  mxArraySetOffset a o (r :+ c) = do
-    withRealDataOff a o (\p -> poke p (hs2mx r))
-    withImagDataOff a o (\p -> poke p (hs2mx c))
-  mxArrayGetOffsetList a o n = do
-    r <- withRealDataOff a o (map mx2hs .=< peekArray n)
-    c <- withImagDataOff a o (map mx2hs .=< peekArray n)
-    pure $ zipWith (:+) r c
-  mxArraySetOffsetList a o v = do
-    withRealDataOff a o (\p -> pokeArray p (map hs2mx r))
-    withImagDataOff a o (\p -> pokeArray p (map hs2mx c))
-    where (r,c) = unzip $ map (\(r:+c) -> (r,c)) v
+-- | Not intended to be public, use `isMXArray` instead. Not included in Internal module due to
+-- | dependence on `MXArrayComponent`.
+isMXArrayMComplex :: (RealFloat a, MType mx a, Storable mx, MXArrayComponent a)
+  => MXArray (MComplex a) -> IO Bool
+isMXArrayMComplex a = liftM2 (&&) (isMXArray (castReal a)) (mxArrayIsComplex a)

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, ScopedTypeVariables, UndecidableInstances #-}
+{-# LANGUAGE AllowAmbiguousTypes, ScopedTypeVariables, UndecidableInstances #-}
 
 module Foreign.Matlab.Array.Internal where
 
@@ -6,7 +6,7 @@ import           Control.Monad
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
--- import           Data.Complex
+import           Data.Complex
 import qualified Data.Map.Strict as DM
 -- import           Data.Maybe (catMaybes)
 import           Foreign.Matlab.Util
@@ -207,3 +207,55 @@ createMXScalarMStruct (MStruct fv) = do
   pure a
   where
     (f,v) = unzip $ DM.toList fv
+
+foreign import ccall unsafe mxGetClassName :: MXArrayPtr -> IO CString
+
+foreign import ccall unsafe mxSetClassName :: MXArrayPtr -> CString -> IO CInt
+
+castReal :: MXArray (Complex a) -> MXArray a
+castReal = unsafeCastMXArray
+
+foreign import ccall unsafe mxGetImagData :: MXArrayPtr -> IO (Ptr a)
+
+withRealDataOff :: (MType mx a, Storable mx) => MXArray (Complex a) -> Int -> (Ptr mx -> IO b) -> IO b
+withRealDataOff = withArrayDataOffDef . castReal
+withImagDataOff :: (MType mx a, Storable mx) => MXArray (Complex a) -> Int -> (Ptr mx -> IO b) -> IO b
+withImagDataOff a o f = withMXArray a (mxGetImagData >=> \p -> f (advancePtr p o))
+
+foreign import ccall unsafe mxIsComplex :: MXArrayPtr -> IO CBool
+
+mxArrayIsComplex :: MXArray a -> IO Bool
+mxArrayIsComplex a = boolC =.< withMXArray a mxIsComplex
+
+-- Complex array access.
+
+createMXArrayMComplex :: forall mx a. (RealFloat a, MNumeric a, MType mx a, Storable mx)
+  => MSize -> MIO (MXArray (MComplex a))
+createMXArrayMComplex s = withNDims s (uncurry $ createNumericArray (mxClassOf (undefined :: a)) True) >>= mkMXArray
+
+mxArrayGetOffsetMComplex :: (RealFloat a, MNumeric a,  MType mx a, Storable mx)
+  => MXArray (MComplex a) -> Int -> MIO (MComplex a)
+mxArrayGetOffsetMComplex a o = do
+  r <- withRealDataOff a o (mx2hs .=< peek)
+  c <- withImagDataOff a o (mx2hs .=< peek)
+  pure $ r :+ c
+
+mxArraySetOffsetMComplex :: (RealFloat a, MNumeric a,  MType mx a, Storable mx)
+  => MXArray (MComplex a)-> Int -> MComplex a -> MIO ()
+mxArraySetOffsetMComplex a o (r :+ c) = do
+  withRealDataOff a o (\p -> poke p (hs2mx r))
+  withImagDataOff a o (\p -> poke p (hs2mx c))
+
+mxArrayGetOffsetListMComplex :: (RealFloat a, MNumeric a,  MType mx a, Storable mx)
+  => MXArray (MComplex a) -> Int -> Int -> MIO [MComplex a]
+mxArrayGetOffsetListMComplex a o n = do
+  r <- withRealDataOff a o (map mx2hs .=< peekArray n)
+  c <- withImagDataOff a o (map mx2hs .=< peekArray n)
+  pure $ zipWith (:+) r c
+
+mxArraySetOffsetListMComplex :: (RealFloat a, MNumeric a,  MType mx a, Storable mx)
+  => MXArray (MComplex a) -> Int -> [MComplex a] -> MIO ()
+mxArraySetOffsetListMComplex a o v = do
+  withRealDataOff a o (\p -> pokeArray p (map hs2mx r))
+  withImagDataOff a o (\p -> pokeArray p (map hs2mx c))
+  where (r,c) = unzip $ map (\(r:+c) -> (r,c)) v

@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables, UndecidableInstances #-}
 {-|
   Array access (with EIO wrappers), including cell arrays and structures.
 
@@ -49,9 +50,6 @@ import           ZIO.Trans
 
 mxArrayClass :: MXArray a -> EIO MatlabException MXClass
 mxArrayClass = mxreE . elift . A.mxArrayClass
-
-mxArrayIsComplex :: MXArray a -> EIO MatlabException Bool
-mxArrayIsComplex = mxreE . elift . A.mxArrayIsComplex
 
 castMNull :: MAnyArray -> EIO MatlabException A.MNullArray
 castMNull a
@@ -271,3 +269,24 @@ instance MXArrayComponent MStruct where
   mxArraySetOffset a i s = mxreE . elift $ AI.mxArraySetOffsetMStruct a i s
   mxArrayGetOffsetList a o n = mxreE . elift $ AI.mxArrayGetOffsetListMStruct a o n
   createMXScalar = mxreE . elift . AI.createMXScalarMStruct
+
+mObjectGetClass :: MStructArray -> EIO MatlabException (Maybe String)
+mObjectGetClass = mxreE . elift . A.mObjectGetClass
+
+-- |Set classname of an unvalidated object array.  It is illegal to call this function on a previously validated object array.
+mObjectSetClass :: MStructArray -> String -> EIO MatlabException ()
+mObjectSetClass a c = mxreE . elift $ A.mObjectSetClass a c
+
+mxArrayIsComplex :: (RealFloat a, MType mx a, Storable mx, A.MXArrayComponent a)
+  => MXArray (MComplex a) -> EIO MatlabException Bool
+mxArrayIsComplex = mxreE . elift . A.isMXArrayMComplex
+
+-- |Complex array access.
+instance (RealFloat a, MNumeric a, MXArrayData mx a, A.MXArrayComponent a) => MXArrayComponent (MComplex a) where
+  isMXArray = mxreE . elift . A.isMXArrayMComplex
+  createMXArray = mxreE . elift . AI.createMXArrayMComplex
+  mxArrayGetOffset a o = mxreE . elift $ AI.mxArrayGetOffsetMComplex a o
+  mxArraySetOffset a o rc = mxreE . elift $ AI.mxArraySetOffsetMComplex a o rc
+  mxArrayGetOffsetList a o n = mxreE . elift $ AI.mxArrayGetOffsetListMComplex a o n
+  mxArraySetOffsetList a o v = mxreE . elift $ AI.mxArraySetOffsetListMComplex a o v
+
