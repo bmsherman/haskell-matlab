@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts, MonoLocalBinds, ScopedTypeVariables, UndecidableInstances #-}
 {-|
   Array access (with ZIO wrappers), including cell arrays and structures.
 
@@ -28,6 +29,6 @@ import           ZIO.Trans
 mxArrayClass :: MXArray a -> ZIO r MatlabException MXClass
 mxArrayClass = ezlift . EA.mxArrayClass
 
-mxArrayIsComplex :: (RealFloat a, MType mx a, Storable mx, A.MXArrayComponent a)
+mxArrayIsComplex :: A.MXArrayComponent (MComplex a)
   => MXArray (MComplex a) -> ZIO r MatlabException Bool
 mxArrayIsComplex = ezlift . EA.mxArrayIsComplex

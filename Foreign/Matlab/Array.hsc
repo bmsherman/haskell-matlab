@@ -45,8 +45,7 @@ module Foreign.Matlab.Array (
 
     -- ** Object access
     -- |Some structs are also validated (blessed) user objects.
-    mObjectGetClass, mObjectSetClass,
-    isMXArrayMComplex -- Not intended to be public
+    mObjectGetClass, mObjectSetClass
   ) where
 
 import           Control.Monad
@@ -267,11 +266,11 @@ mxCellGetAllOfType ca = do
   join <$> (sequence $ mxArrayGetAll <$> as)
 
 class (MXArrayComponent a, MType mx a, Storable mx) => MXArrayData mx a where
-  withArrayData :: MXArray a -> (Ptr mx -> IO b) -> IO b
-  withArrayData = withArrayDataDef
+  -- withArrayData :: MXArray a -> (Ptr mx -> IO b) -> IO b
+  -- withArrayData = withArrayDataDef
 
-  withArrayDataOff :: MXArray a -> Int -> (Ptr mx -> IO b) -> IO b
-  withArrayDataOff = withArrayDataOffDef
+  -- withArrayDataOff :: MXArray a -> Int -> (Ptr mx -> IO b) -> IO b
+  -- withArrayDataOff = withArrayDataOffDef
 
   arrayDataGet :: MXArray a -> Int -> IO a
   arrayDataGet = arrayDataGetDef
@@ -300,16 +299,16 @@ instance MXArrayComponent MLogical where
   isMXScalar = isMXScalarMLogical
   mxScalarGet = mxScalarGetMLogical
   #arrayDataComponent
-instance MXArrayData MXLogical MLogical where
-  withArrayData = withArrayDataMLogical
+instance MXArrayData MXLogical MLogical -- where
+--  withArrayData = withArrayDataMLogical
 
 instance MXArrayComponent MChar where
   isMXArray = isMXArrayMChar
   createMXArray = createMXArrayMChar
   createRowVector = createRowVectorMChar
   #arrayDataComponent
-instance MXArrayData MXChar MChar where
-  withArrayData = withArrayDataMChar
+instance MXArrayData MXChar MChar -- where
+--  withArrayData = withArrayDataMChar
 
 
 #let numarray t = "\
@@ -415,8 +414,6 @@ instance (RealFloat a, MNumeric a, MXArrayData mx a) => MXArrayComponent (MCompl
   mxArrayGetOffsetList = mxArrayGetOffsetListMComplex
   mxArraySetOffsetList = mxArraySetOffsetListMComplex
 
--- | Not intended to be public, use `isMXArray` instead. Not included in Internal module due to
--- | dependence on `MXArrayComponent`.
 isMXArrayMComplex :: (RealFloat a, MType mx a, Storable mx, MXArrayComponent a)
   => MXArray (MComplex a) -> IO Bool
 isMXArrayMComplex a = liftM2 (&&) (isMXArray (castReal a)) (mxArrayIsComplex a)
