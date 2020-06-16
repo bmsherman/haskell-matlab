@@ -5,7 +5,7 @@
 Functions here are primarily thin wrappers to the underlying Matlab functions, and the same memory-management semantics hold.
   In particular, created arrays must be freed, 'copyMXArray' and 'freeMXArray' are deep operations, other set operations do not make copies.
 
-For documenation, see `Foreign.Matlab.Array`.
+For underlying implementation, see `Foreign.Matlab.Array`.
 
 |-}
 
@@ -63,14 +63,11 @@ import           Foreign.Matlab.Util
 import           Foreign.Matlab.ZIOTypes
 import           ZIO.Trans
 
-
--- TODO: consider generic derivation of class instances: A.MXarrayComponent a => MXarrayComponent a
-
-#include <matrix.h>
-
+-- |Return the representation of the type of the elements of an array
 mxArrayClass :: MXArray a -> EIO MatlabException MXClass
 mxArrayClass = mxreE . elift . A.mxArrayClass
 
+-- |Safely cast a generic array to a NULL array, or return Nothing if the array is not NULL
 castMNull :: MAnyArray -> EIO MatlabException A.MNullArray
 castMNull a
   | isMNull a = pure $ unsafeCastMXArray a
@@ -84,21 +81,27 @@ castMXArray a = do
     Just arr -> pure arr
     Nothing -> throwError MXNothing
 
+-- |Get the size (dimensions) of an array
 mxArraySize :: MXArray a -> EIO MatlabException MSize
 mxArraySize = mxreE . elift . A.mxArraySize
 
+-- |Set dimension array and number of dimensions
 mxArraySetSize :: MXArray a -> MSize -> EIO MatlabException ()
 mxArraySetSize a s = (mxreE . elift) $ A.mxArraySetSize a s
 
+-- |Like `numel` in MATLAB.
 mxArrayLength :: MXArray a -> EIO MatlabException Int
 mxArrayLength = mxreE . elift . A.mxArrayLength
 
+-- |Destroy an array and all of its contents.
 freeMXArray :: MXArray a -> EIO MatlabException ()
 freeMXArray = mxreE . elift . A.freeMXArray
 
+-- |Make a deep copy of an array
 copyMXArray :: MXArray a -> EIO MatlabException (MXArray a)
 copyMXArray = mxreE . elift . A.copyMXArray
 
+-- |Get the value of the specified array element.  Does not check bounds.
 mIndexOffset :: MXArray a -> MIndex -> EIO MatlabException Int
 mIndexOffset a i = (mxreE . elift) $ A.mIndexOffset a i
 
