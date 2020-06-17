@@ -7,6 +7,7 @@ module Test.Engine where
 import Control.Exception (SomeException, assert, try)
 import Data.Either (isLeft, isRight, lefts)
 import Foreign.Matlab
+import Foreign.Matlab.Array
 import Foreign.Matlab.Engine
 import Foreign.Matlab.Engine.Wrappers
 import Language.Haskell.TH (Q, runIO)

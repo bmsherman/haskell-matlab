@@ -16,6 +16,7 @@ module Foreign.Matlab.Engine.Wrappers (
 
 import qualified Data.Map.Strict as DM
 import           Foreign.Matlab
+import           Foreign.Matlab.Array
 import           Foreign.Matlab.Engine
 import           Path
 
