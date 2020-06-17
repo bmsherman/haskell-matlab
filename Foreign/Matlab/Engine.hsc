@@ -19,6 +19,7 @@ module Foreign.Matlab.Engine (
   ) where
 
 import Control.Monad
+import Control.Monad.Except
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
@@ -55,7 +56,7 @@ newEngine :: FilePath -> IO Engine
 newEngine host = do
   eng <- withCString host engOpen
   if eng == nullPtr
-    then fail "engOpen"
+    then throwError $ userError "engOpen"
     else Engine =.< newForeignPtr engClose eng
 
 withEngine :: Engine -> (EnginePtr -> IO a) -> IO a
@@ -66,7 +67,7 @@ foreign import ccall unsafe engEvalString :: EnginePtr -> CString -> IO CInt
 engineEval :: Engine -> String -> IO ()
 engineEval eng s = do
   r <- withEngine eng (withCString s . engEvalString)
-  when (r /= 0) $ fail "engineEval"
+  when (r /= 0) $ throwError $ userError "engineEval"
 
 foreign import ccall unsafe engGetVariable :: EnginePtr -> CString -> IO MXArrayPtr
 -- |Get a variable with the specified name from MATLAB's workspace
@@ -78,7 +79,7 @@ foreign import ccall unsafe engPutVariable :: EnginePtr -> CString -> MXArrayPtr
 engineSetVar :: Engine -> String -> MXArray a -> IO ()
 engineSetVar eng v x = do
   r <- withEngine eng (\eng -> withCString v (withMXArray x . engPutVariable eng))
-  when (r /= 0) $ fail "engineSetVar"
+  when (r /= 0) $ throwError $ userError "engineSetVar"
 
 data EngineEvalArg a = EvalArray (MXArray a) | EvalStruct MStruct | EvalVar String | EvalStr String
 

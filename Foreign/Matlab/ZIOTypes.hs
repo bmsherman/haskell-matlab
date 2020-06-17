@@ -1,21 +1,16 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LambdaCase         #-}
 
-module Foreign.Matlab.ZIOTypes where
-
+module Foreign.Matlab.ZIOTypes (
+  mxeeZ
+, mxreE
+, mxreZ
+, mxToMaybeE, mxToMaybeZ
+, module Foreign.Matlab.Exceptions
+) where
 
 import qualified Control.Exception as Ex
-import           Data.Typeable (Typeable)
+import           Foreign.Matlab.Exceptions
 import           ZIO.Trans
-
-data MatlabException =
-    MXLogicalError String -- ^ 
-  | MXRuntimeError Ex.SomeException
-  | MXEngineError Ex.SomeException
-  | MXNothing -- ^ To avoid wrapping Maybes by default.
-  deriving (Show, Typeable)
-
-instance Ex.Exception MatlabException
 
 mxeeZ :: ZIO r SomeNonPseudoException a -> ZIO r MatlabException a
 mxeeZ = mapZError (\e -> MXEngineError (Ex.toException e))
