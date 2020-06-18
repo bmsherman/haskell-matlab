@@ -10,8 +10,8 @@ data MatlabException =
   | MXRuntimeError Ex.SomeException
   | MXEngineError Ex.SomeException
   | MXNothing -- ^ To avoid wrapping Maybes by default.
-  | MXLibError -- ^ Error creatined in a downstream library
-  | MXAppError -- ^ Error creatined in a downstream application
+  | MXLibError Ex.SomeException -- ^ Error creatined in a downstream library
+  | MXAppError Ex.SomeException -- ^ Error creatined in a downstream application
   deriving (Show, Typeable)
 
 instance Ex.Exception MatlabException
