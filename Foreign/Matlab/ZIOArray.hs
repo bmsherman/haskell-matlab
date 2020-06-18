@@ -8,8 +8,47 @@ Functions here are primarily thin wrappers to the underlying Matlab functions, a
 For underlying implementation, see `Foreign.Matlab.Array`.
 
 |-}
+module Foreign.Matlab.ZIOArray (
+    -- * Array manipulation
+    A.anyMXArray
+  , A.MNullArray, castMNull
+  , mxArrayClass
+  , mxArrayIsComplex
+  , mxArraySize
+  , mxArraySetSize
+  , mxArrayLength
+  , freeMXArray
+  , copyMXArray
+  , mIndexOffset
 
-module Foreign.Matlab.ZIOArray where
+    -- * Array element access
+  , MXArrayComponent(..)
+  , castMXArray
+    -- | array element access
+  , mxArrayGet, mxArraySet
+    -- | array list access
+  , mxArrayGetList, mxArraySetList
+  , mxArrayGetAll, mxArraySetAll
+  , mxArrayGetOffsetSafe, mxArrayGetFirst, mxArrayGetLast
+    -- mxArrayGetSafe, --TODO--
+  , fromListIO, cellFromListsIO
+  , isMNull
+
+    -- * Struct access
+    -- |Structs in Matlab are always arrays, and so can be accessed using most array accessors.
+    -- |However, the modification functions such as 'mxArraySet' are not implemented because they could disrupt field data in the entire struct array, and so some specialized functions are necessary.
+  , MStructArray
+  , createStruct
+  , mStructFields
+  , mStructGet, mStructSet
+  , mStructSetFields
+  , mStructAddField, mStructRemoveField
+  , mxCellGetAllOfType, mxCellGetArraysOfType
+
+    -- ** Object access
+    -- |Some structs are also validated (blessed) user objects.
+  , mObjectGetClass, mObjectSetClass
+  ) where
 
 import qualified Foreign.Matlab.Array as A
 import qualified Foreign.Matlab.EIOArray as EA

@@ -8,7 +8,6 @@ Functions here are primarily thin wrappers to the underlying Matlab functions, a
 For underlying implementation, see `Foreign.Matlab.Array`.
 
 |-}
-
 module Foreign.Matlab.EIOArray (
     -- * Array manipulation
     A.anyMXArray
