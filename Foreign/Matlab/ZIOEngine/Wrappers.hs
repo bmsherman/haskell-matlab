@@ -14,8 +14,6 @@ module Foreign.Matlab.ZIOEngine.Wrappers (
 , EW.VarArgIn, EW.mxVarArgs
 ) where
 
-import           Data.Either.Combinators (maybeToRight)
-import           Data.Maybe (listToMaybe)
 import           Foreign.Matlab
 import qualified Foreign.Matlab.Engine.Wrappers as EW
 import qualified Foreign.Matlab.ZIOArray as ZA
@@ -47,9 +45,10 @@ getArrayFromByteStream :: HasEngine r => [MUint8] -> ZIO r MatlabException MAnyA
 getArrayFromByteStream bytes = do
   matBsArr <- ZA.createMXArray [length bytes]
   ZA.mxArraySetAll matBsArr bytes
-  evalFunRes <- engineEvalFun "getArrayFromByteStream" [EvalArray matBsArr] 1
-  mapZError MXLogicalError $ liftEither $
-    maybeToRight "getArrayFromByteStream returned 0 values" $ listToMaybe evalFunRes
+  (headZ "getArrayFromByteStream returned 0 values") =<<
+    engineEvalFun "getArrayFromByteStream" [EvalArray matBsArr] 1
+  -- mapZError MXLogicalError $ liftEither $
+  --   maybeToRight "getArrayFromByteStream returned 0 values" $ listToMaybe evalFunRes
 
 isMLeft :: EW.MEither -> ZIO r MatlabException Bool
 isMLeft me = do

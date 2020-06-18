@@ -7,9 +7,12 @@ module Foreign.Matlab.ZIOTypes (
 , mxaeZ, mxleZ
 , mxToMaybeE, mxToMaybeZ
 , module Foreign.Matlab.Exceptions
+, headE, headZ
 ) where
 
 import qualified Control.Exception as Ex
+import           Data.Either.Combinators (maybeToRight)
+import           Data.Maybe (listToMaybe)
 import           Foreign.Matlab.Exceptions
 import           ZIO.Trans
 
@@ -44,3 +47,9 @@ mxToMaybeZ :: ZIO r MatlabException a -> ZIO r MatlabException (Maybe a)
 mxToMaybeZ zio = do
   env <- ask
   (ezlift . mxToMaybeE . (flip runReaderT env)  . _unZIO) zio
+
+headE :: String -> [a] -> EIO MatlabException a
+headE msg xs = mapEError MXLogicalError $ liftEither $ maybeToRight msg $ listToMaybe xs
+
+headZ :: String -> [a] -> ZIO r MatlabException a
+headZ msg xs = ezlift $ headE msg xs
