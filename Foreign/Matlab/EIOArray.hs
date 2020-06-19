@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, MonoLocalBinds, ScopedTypeVariables, UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts, ScopedTypeVariables, MonoLocalBinds #-}
 {-|
   Array access (with EIO wrappers), including cell arrays and structures.
 
@@ -22,7 +22,12 @@ module Foreign.Matlab.EIOArray (
   , mIndexOffset
 
     -- * Array element access
-  , MXArrayComponent(..)
+  , A.MXArrayComponent
+  , isMXArray, mxArrayGetOffset, mxArraySetOffset
+    , mxArrayGetOffsetList, mxArraySetOffsetList
+    , mxScalarGet, isMXScalar
+    , createMXArray, createMXScalar
+    , createColVector, createRowVector  
   , castMXArray
     -- | array element access
   , mxArrayGet, mxArraySet
@@ -105,33 +110,33 @@ mIndexOffset :: MXArray a -> MIndex -> EIO MatlabException Int
 mIndexOffset a i = (mxreE . elift) $ A.mIndexOffset a i
 
 -- |Get the value of the specified array element.  Does not check bounds.
-mxArrayGet :: MXArrayComponent a => MXArray a -> MIndex -> EIO MatlabException a
+mxArrayGet :: A.MXArrayComponent a => MXArray a -> MIndex -> EIO MatlabException a
 mxArrayGet a i = mIndexOffset a i >>= mxArrayGetOffset a
 
 -- |Set an element in an array to the specified value.  Does not check bounds.
-mxArraySet :: MXArrayComponent a => MXArray a -> MIndex -> a -> EIO MatlabException ()
+mxArraySet :: A.MXArrayComponent a => MXArray a -> MIndex -> a -> EIO MatlabException ()
 mxArraySet a i v = do
   o <- mIndexOffset a i
   mxArraySetOffset a o v
 
 -- |@'mxArrayGetList' a i n@ gets the sequential list of @n@ items from array @a@ starting at index @i@.  Does not check bounds.
-mxArrayGetList :: MXArrayComponent a => MXArray a -> MIndex -> Int -> EIO MatlabException [a]
+mxArrayGetList :: A.MXArrayComponent a => MXArray a -> MIndex -> Int -> EIO MatlabException [a]
 mxArrayGetList a i n = do
   o <- mIndexOffset a i
   n <- if n == -1 then subtract o =.< mxArrayLength a else pure n
   mxArrayGetOffsetList a o n
 -- |@'mxArraySetList' a i l@ sets the sequential items in array @a@ starting at index @i@ to @l@.  Does not check bounds.
-mxArraySetList :: MXArrayComponent a => MXArray a -> MIndex -> [a] -> EIO MatlabException ()
+mxArraySetList :: A.MXArrayComponent a => MXArray a -> MIndex -> [a] -> EIO MatlabException ()
 mxArraySetList a i l = do
   o <- mIndexOffset a i
   mxArraySetOffsetList a o l
 
 -- |Get a flat list of all elements in the array.
-mxArrayGetAll :: MXArrayComponent a => MXArray a -> EIO MatlabException [a]
+mxArrayGetAll :: A.MXArrayComponent a => MXArray a -> EIO MatlabException [a]
 mxArrayGetAll a = mxArrayGetList a mStart (-1)
 
 -- |Set a flat list of all elements in the array.
-mxArraySetAll :: MXArrayComponent a => MXArray a -> [a] -> EIO MatlabException ()
+mxArraySetAll :: A.MXArrayComponent a => MXArray a -> [a] -> EIO MatlabException ()
 mxArraySetAll a = mxArraySetList a mStart
 
 mxArrayGetFirst :: A.MXArrayComponent a => MXArray a -> EIO MatlabException a
@@ -179,53 +184,37 @@ mxCellGetAllOfType ca = do
 
 
 -- |The class of standardly typeable array elements
-class MXArrayComponent a where
-  -- |Determine whether the given array is of the correct type
-  isMXArray :: MXArray a -> EIO MatlabException Bool
-  -- |Create an array and initialize all its data elements to some default value, usually 0 or []
-  createMXArray :: MSize -> EIO MatlabException (MXArray a)
 
-  -- |Determine if an array is singleton. Equivalent to
-  --
-  -- >  liftM (all (1 ==)) . mxArraySize
-  isMXScalar :: MXArray a -> EIO MatlabException Bool
+-- |Determine whether the given array is of the correct type
+isMXArray :: A.MXArrayComponent a => MXArray a -> EIO MatlabException Bool
+-- |Create an array and initialize all its data elements to some default value, usually 0 or []
+createMXArray :: A.MXArrayComponent a => MSize -> EIO MatlabException (MXArray a)
 
-  mxArrayGetOffset :: MXArray a -> Int -> EIO MatlabException a
-  mxArraySetOffset :: MXArray a -> Int -> a -> EIO MatlabException ()
+-- |Determine if an array is singleton. Equivalent to
+--
+-- >  liftM (all (1 ==)) . mxArraySize
+isMXScalar :: A.MXArrayComponent a => MXArray a -> EIO MatlabException Bool
 
-  mxArrayGetOffsetList :: MXArray a -> Int -> Int -> EIO MatlabException [a]
-  mxArraySetOffsetList :: MXArray a -> Int -> [a] -> EIO MatlabException ()
+mxArrayGetOffset :: A.MXArrayComponent a => MXArray a -> Int -> EIO MatlabException a
+mxArraySetOffset :: A.MXArrayComponent a => MXArray a -> Int -> a -> EIO MatlabException ()
 
-  -- |Get the value of the first data element in an array or, more specifically, the value that the array will be interpreted as in scalar context
-  mxScalarGet :: MXArray a -> EIO MatlabException a
+mxArrayGetOffsetList :: A.MXArrayComponent a => MXArray a -> Int -> Int -> EIO MatlabException [a]
+mxArraySetOffsetList :: A.MXArrayComponent a => MXArray a -> Int -> [a] -> EIO MatlabException ()
 
-  -- |Create a singleton (scalar) array having the specified value
-  createMXScalar :: a -> EIO MatlabException (MXArray a)
-  -- |Create a column vector from the given list.
-  createColVector :: [a] -> EIO MatlabException (MXArray a)
-  -- |Create a row vector from the given list.
-  createRowVector :: [a] -> EIO MatlabException (MXArray a)
+-- |Get the value of the first data element in an array or, more specifically, the value that the array will be interpreted as in scalar context
+mxScalarGet :: A.MXArrayComponent a => MXArray a -> EIO MatlabException a
 
-  isMXArray _ = pure False
-  isMXScalar a = liftM2 (&&) (isMXArray a) (all (1 ==) =.< mxArraySize a)
+-- |Create a singleton (scalar) array having the specified value
+createMXScalar :: A.MXArrayComponent a => a -> EIO MatlabException (MXArray a)
+-- |Create a column vector from the given list.
+createColVector :: A.MXArrayComponent a => [a] -> EIO MatlabException (MXArray a)
+-- |Create a row vector from the given list.
+createRowVector :: A.MXArrayComponent a => [a] -> EIO MatlabException (MXArray a)
 
-  mxArrayGetOffsetList a o n = mapM (mxArrayGetOffset a) [o..o+n-1]
-  mxArraySetOffsetList a o = zipWithM_ (mxArraySetOffset a . (o+)) [0..]
-
-  mxScalarGet a = mxArrayGetOffset a 0
-
-  createMXScalar x = do
-    a <- createMXArray [1]
-    mxArraySetOffset a 0 x
-    pure a
-  createRowVector l = do
-    a <- createMXArray [1,length l]
-    mxArraySetOffsetList a 0 l
-    pure a
-  createColVector l = do
-    a <- createMXArray [length l]
-    mxArraySetOffsetList a 0 l
-    pure a
+createColVector l = do
+  a <- createMXArray [length l]
+  mxArraySetOffsetList a 0 l
+  pure a
 
 -- mxGetData :: MXArrayPtr -> UIO (Ptr a)
 -- mxGetData = unsafeFromIO . AI.mxGetData
@@ -249,17 +238,17 @@ class MXArrayComponent a where
 --   arrayDataSetList :: MXArray a -> Int -> [a] -> EIO MatlabException ()
 --   arrayDataSetList a o l = mxreE . elift $ AI.arrayDataSetListDef a o l
 
-instance A.MXArrayComponent a => MXArrayComponent a where
-  isMXArray = mxreE . elift . A.isMXArray
-  createMXArray = mxreE . elift . A.createMXArray
-  createMXScalar = mxreE . elift . A.createMXScalar
-  isMXScalar = mxreE . elift . A.isMXScalar
-  mxScalarGet = mxreE . elift . A.mxScalarGet
-  createRowVector = mxreE . elift . A.createRowVector
-  mxArrayGetOffset a o = mxreE . elift $ A.mxArrayGetOffset a o
-  mxArraySetOffset a o mcv = mxreE . elift $ A.mxArraySetOffset a o mcv
-  mxArrayGetOffsetList a o n = mxreE . elift $ A.mxArrayGetOffsetList a o n
-  mxArraySetOffsetList a o v = mxreE . elift $ A.mxArraySetOffsetList a o v
+-- instance A.MXArrayComponent a => MXArrayComponent a where
+isMXArray = mxreE . elift . A.isMXArray
+createMXArray = mxreE . elift . A.createMXArray
+createMXScalar = mxreE . elift . A.createMXScalar
+isMXScalar = mxreE . elift . A.isMXScalar
+mxScalarGet = mxreE . elift . A.mxScalarGet
+createRowVector = mxreE . elift . A.createRowVector
+mxArrayGetOffset a o = mxreE . elift $ A.mxArrayGetOffset a o
+mxArraySetOffset a o mcv = mxreE . elift $ A.mxArraySetOffset a o mcv
+mxArrayGetOffsetList a o n = mxreE . elift $ A.mxArrayGetOffsetList a o n
+mxArraySetOffsetList a o v = mxreE . elift $ A.mxArraySetOffsetList a o v
 
 -- instance MXArrayData MXLogical MLogical where
 --   withArrayData a f = (mxreE . elift) $ AI.withArrayDataMLogical a f

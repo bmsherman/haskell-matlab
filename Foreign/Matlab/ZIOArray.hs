@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, MonoLocalBinds, ScopedTypeVariables, UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts, ScopedTypeVariables, MonoLocalBinds #-}
 {-|
   Array access (with ZIO wrappers), including cell arrays and structures.
 
@@ -22,7 +22,13 @@ module Foreign.Matlab.ZIOArray (
   , mIndexOffset
 
     -- * Array element access
-  , MXArrayComponent(..)
+  , A.MXArrayComponent
+  , isMXArray, mxArrayGetOffset, mxArraySetOffset
+    , mxArrayGetOffsetList, mxArraySetOffsetList
+    , mxScalarGet, isMXScalar
+    , createMXArray, createMXScalar
+    , createColVector, createRowVector  
+
   , castMXArray
     -- | array element access
   , mxArrayGet, mxArraySet
@@ -51,7 +57,7 @@ module Foreign.Matlab.ZIOArray (
   ) where
 
 import qualified Foreign.Matlab.Array as A
-import qualified Foreign.Matlab.EIOArray as EA
+import qualified Foreign.Matlab.EIOArray as EA hiding (MXArrayComponent)
 
 import           Foreign.Matlab.Internal
 import           Foreign.Matlab.Types
@@ -98,33 +104,33 @@ mIndexOffset :: MXArray a -> MIndex -> ZIO r MatlabException Int
 mIndexOffset a i = ezlift $ EA.mIndexOffset a i
 
 -- |Get the value of the specified array element.  Does not check bounds.
-mxArrayGet :: MXArrayComponent a => MXArray a -> MIndex -> ZIO r MatlabException a
+mxArrayGet :: A.MXArrayComponent a => MXArray a -> MIndex -> ZIO r MatlabException a
 mxArrayGet a i = mIndexOffset a i >>= mxArrayGetOffset a
 
 -- |Set an element in an array to the specified value.  Does not check bounds.
-mxArraySet :: MXArrayComponent a => MXArray a -> MIndex -> a -> ZIO r MatlabException ()
+mxArraySet :: A.MXArrayComponent a => MXArray a -> MIndex -> a -> ZIO r MatlabException ()
 mxArraySet a i v = do
   o <- mIndexOffset a i
   mxArraySetOffset a o v
 
 -- |@'mxArrayGetList' a i n@ gets the sequential list of @n@ items from array @a@ starting at index @i@.  Does not check bounds.
-mxArrayGetList :: MXArrayComponent a => MXArray a -> MIndex -> Int -> ZIO r MatlabException [a]
+mxArrayGetList :: A.MXArrayComponent a => MXArray a -> MIndex -> Int -> ZIO r MatlabException [a]
 mxArrayGetList a i n = do
   o <- mIndexOffset a i
   n <- if n == -1 then subtract o =.< mxArrayLength a else pure n
   mxArrayGetOffsetList a o n
 -- |@'mxArraySetList' a i l@ sets the sequential items in array @a@ starting at index @i@ to @l@.  Does not check bounds.
-mxArraySetList :: MXArrayComponent a => MXArray a -> MIndex -> [a] -> ZIO r MatlabException ()
+mxArraySetList :: A.MXArrayComponent a => MXArray a -> MIndex -> [a] -> ZIO r MatlabException ()
 mxArraySetList a i l = do
   o <- mIndexOffset a i
   mxArraySetOffsetList a o l
 
 -- |Get a flat list of all elements in the array.
-mxArrayGetAll :: MXArrayComponent a => MXArray a -> ZIO r MatlabException [a]
+mxArrayGetAll :: A.MXArrayComponent a => MXArray a -> ZIO r MatlabException [a]
 mxArrayGetAll a = mxArrayGetList a mStart (-1)
 
 -- |Set a flat list of all elements in the array.
-mxArraySetAll :: MXArrayComponent a => MXArray a -> [a] -> ZIO r MatlabException ()
+mxArraySetAll :: A.MXArrayComponent a => MXArray a -> [a] -> ZIO r MatlabException ()
 mxArraySetAll a = mxArraySetList a mStart
 
 mxArrayGetFirst :: A.MXArrayComponent a => MXArray a -> ZIO r MatlabException a
@@ -170,65 +176,50 @@ mxCellGetAllOfType ca = do
 
 
 -- |The class of standardly typeable array elements
-class MXArrayComponent a where
-  -- |Determine whether the given array is of the correct type
-  isMXArray :: MXArray a -> ZIO r MatlabException Bool
-  -- |Create an array and initialize all its data elements to some default value, usually 0 or []
-  createMXArray :: MSize -> ZIO r MatlabException (MXArray a)
+-- class A.MXArrayComponent a where
 
-  -- |Determine if an array is singleton. Equivalent to
-  --
-  -- >  liftM (all (1 ==)) . mxArraySize
-  isMXScalar :: MXArray a -> ZIO r MatlabException Bool
+-- |Determine whether the given array is of the correct type
+isMXArray :: A.MXArrayComponent a => MXArray a -> ZIO r MatlabException Bool
+-- |Create an array and initialize all its data elements to some default value, usually 0 or []
+createMXArray :: A.MXArrayComponent a => MSize -> ZIO r MatlabException (MXArray a)
 
-  mxArrayGetOffset :: MXArray a -> Int -> ZIO r MatlabException a
-  mxArraySetOffset :: MXArray a -> Int -> a -> ZIO r MatlabException ()
+-- |Determine if an array is singleton. Equivalent to
+--
+-- >  liftM (all (1 ==)) . mxArraySize
+isMXScalar :: A.MXArrayComponent a => MXArray a -> ZIO r MatlabException Bool
 
-  mxArrayGetOffsetList :: MXArray a -> Int -> Int -> ZIO r MatlabException [a]
-  mxArraySetOffsetList :: MXArray a -> Int -> [a] -> ZIO r MatlabException ()
+mxArrayGetOffset :: A.MXArrayComponent a => MXArray a -> Int -> ZIO r MatlabException a
+mxArraySetOffset :: A.MXArrayComponent a => MXArray a -> Int -> a -> ZIO r MatlabException ()
 
-  -- |Get the value of the first data element in an array or, more specifically, the value that the array will be interpreted as in scalar context
-  mxScalarGet :: MXArray a -> ZIO r MatlabException a
+mxArrayGetOffsetList :: A.MXArrayComponent a => MXArray a -> Int -> Int -> ZIO r MatlabException [a]
+mxArraySetOffsetList :: A.MXArrayComponent a => MXArray a -> Int -> [a] -> ZIO r MatlabException ()
 
-  -- |Create a singleton (scalar) array having the specified value
-  createMXScalar :: a -> ZIO r MatlabException (MXArray a)
-  -- |Create a column vector from the given list.
-  createColVector :: [a] -> ZIO r MatlabException (MXArray a)
-  -- |Create a row vector from the given list.
-  createRowVector :: [a] -> ZIO r MatlabException (MXArray a)
+-- |Get the value of the first data element in an array or, more specifically, the value that the array will be interpreted as in scalar context
+mxScalarGet :: A.MXArrayComponent a => MXArray a -> ZIO r MatlabException a
 
-  isMXArray _ = pure False
-  isMXScalar a = liftM2 (&&) (isMXArray a) (all (1 ==) =.< mxArraySize a)
+-- |Create a singleton (scalar) array having the specified value
+createMXScalar :: A.MXArrayComponent a => a -> ZIO r MatlabException (MXArray a)
+-- |Create a column vector from the given list.
+createColVector :: A.MXArrayComponent a => [a] -> ZIO r MatlabException (MXArray a)
+-- |Create a row vector from the given list.
+createRowVector :: A.MXArrayComponent a => [a] -> ZIO r MatlabException (MXArray a)
 
-  mxArrayGetOffsetList a o n = mapM (mxArrayGetOffset a) [o..o+n-1]
-  mxArraySetOffsetList a o = zipWithM_ (mxArraySetOffset a . (o+)) [0..]
+createColVector l = do
+  a <- createMXArray [length l]
+  mxArraySetOffsetList a 0 l
+  pure a
 
-  mxScalarGet a = mxArrayGetOffset a 0
-
-  createMXScalar x = do
-    a <- createMXArray [1]
-    mxArraySetOffset a 0 x
-    pure a
-  createRowVector l = do
-    a <- createMXArray [1,length l]
-    mxArraySetOffsetList a 0 l
-    pure a
-  createColVector l = do
-    a <- createMXArray [length l]
-    mxArraySetOffsetList a 0 l
-    pure a
-
-instance A.MXArrayComponent a => MXArrayComponent a where
-  isMXArray = ezlift . EA.isMXArray
-  createMXArray = ezlift . EA.createMXArray
-  createMXScalar = ezlift . EA.createMXScalar
-  isMXScalar = ezlift . EA.isMXScalar
-  mxScalarGet = ezlift . EA.mxScalarGet
-  createRowVector = ezlift . EA.createRowVector
-  mxArrayGetOffset a o = ezlift $ EA.mxArrayGetOffset a o
-  mxArraySetOffset a o mcv = ezlift $ EA.mxArraySetOffset a o mcv
-  mxArrayGetOffsetList a o n = ezlift $ EA.mxArrayGetOffsetList a o n
-  mxArraySetOffsetList a o v = ezlift $ EA.mxArraySetOffsetList a o v
+-- instance A.MXArrayComponent a => A.MXArrayComponent a where
+isMXArray = ezlift . EA.isMXArray
+createMXArray = ezlift . EA.createMXArray
+createMXScalar = ezlift . EA.createMXScalar
+isMXScalar = ezlift . EA.isMXScalar
+mxScalarGet = ezlift . EA.mxScalarGet
+createRowVector = ezlift . EA.createRowVector
+mxArrayGetOffset a o = ezlift $ EA.mxArrayGetOffset a o
+mxArraySetOffset a o mcv = ezlift $ EA.mxArraySetOffset a o mcv
+mxArrayGetOffsetList a o n = ezlift $ EA.mxArrayGetOffsetList a o n
+mxArraySetOffsetList a o v = ezlift $ EA.mxArraySetOffsetList a o v
 
 createStruct :: MSize -> [String] -> ZIO r MatlabException MStructArray
 createStruct s f = ezlift $ EA.createStruct s f
