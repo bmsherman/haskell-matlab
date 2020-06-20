@@ -5,6 +5,8 @@ module Foreign.Matlab.ZIOTypes (
 , mxeeZ, mxreZ
 , mxaeE, mxleE
 , mxaeZ, mxleZ
+, mxasE, mxlsE
+, mxasZ, mxlsZ
 , mxToMaybeE, mxToMaybeZ
 , module Foreign.Matlab.Exceptions
 , headE, headZ
@@ -14,6 +16,7 @@ import qualified Control.Exception as Ex
 import           Data.Either.Combinators (maybeToRight)
 import           Data.Maybe (listToMaybe)
 import           Foreign.Matlab.Exceptions
+import           GHC.Exception (errorCallException)
 import           ZIO.Trans
 
 mxreE :: EIO SomeNonPseudoException a -> EIO MatlabException a
@@ -36,6 +39,20 @@ mxaeZ = mapZError (\e -> MXAppError (Ex.toException e))
 
 mxleZ :: ZIO r SomeNonPseudoException a -> ZIO r MatlabException a
 mxleZ = mapZError (\e -> MXLibError (Ex.toException e))
+
+
+mxasE :: EIO String a -> EIO MatlabException a
+mxasE = mapEError $ \s -> MXAppError $ Ex.toException $ errorCallException s
+
+mxlsE :: EIO String a -> EIO MatlabException a
+mxlsE = mapEError $ \s -> MXLibError $ Ex.toException $ errorCallException s
+
+mxasZ :: ZIO r String a -> ZIO r MatlabException a
+mxasZ = mapZError $ \s -> MXAppError $ Ex.toException $ errorCallException s
+
+mxlsZ :: ZIO r String a -> ZIO r MatlabException a
+mxlsZ = mapZError $ \s -> MXLibError $ Ex.toException $ errorCallException s
+
 
 mxToMaybeE :: EIO MatlabException a -> EIO MatlabException (Maybe a)
 mxToMaybeE eio = catchError (pure <$> eio) (\case
