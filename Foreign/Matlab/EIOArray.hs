@@ -48,7 +48,7 @@ module Foreign.Matlab.EIOArray (
   , mStructGet, mStructSet
   , mStructSetFields
   , mStructAddField, mStructRemoveField
-  , mxCellGetAllOfType, mxCellGetArraysOfType
+  , mxCellGetAllOfType, mxCellGetAllListsOfType, mxCellGetArraysOfType
 
     -- ** Object access
     -- |Some structs are also validated (blessed) user objects.
@@ -178,10 +178,13 @@ mxCellGetArraysOfType ca = do
 -- | may have larger dimensions than the original Cell Array due to flattening.
 mxCellGetAllOfType :: (A.MXArrayComponent a)
   => MXArray MCell -> EIO MatlabException [a]
-mxCellGetAllOfType ca = do
-  as <- mxCellGetArraysOfType ca
-  join <$> (sequence $ mxArrayGetAll <$> as)
+mxCellGetAllOfType ca = join <$> mxCellGetAllListsOfType ca
 
+mxCellGetAllListsOfType :: (A.MXArrayComponent a)
+  => MXArray MCell -> EIO MatlabException [[a]]
+mxCellGetAllListsOfType ca = do
+  as <- mxCellGetArraysOfType ca
+  traverse mxArrayGetAll as
 
 -- |The class of standardly typeable array elements
 

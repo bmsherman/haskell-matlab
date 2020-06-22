@@ -41,7 +41,7 @@ module Foreign.Matlab.Array (
     mStructGet, mStructSet,
     mStructSetFields,
     mStructAddField, mStructRemoveField,
-    mxCellGetAllOfType, mxCellGetArraysOfType,
+    mxCellGetAllOfType, mxCellGetAllListsOfType, mxCellGetArraysOfType,
 
     -- ** Object access
     -- |Some structs are also validated (blessed) user objects.
@@ -261,9 +261,13 @@ mxCellGetArraysOfType ca = do
 -- | A convenience function to extract all arrays of a given type from a Cell Array;
 -- | may have larger dimensions than the original Cell Array due to flattening.
 mxCellGetAllOfType :: MXArrayComponent a => MXArray MCell -> MIO [a]
-mxCellGetAllOfType ca = do
+mxCellGetAllOfType ca = join <$> mxCellGetAllListsOfType ca
+
+mxCellGetAllListsOfType :: (MXArrayComponent a)
+  => MXArray MCell -> MIO [[a]]
+mxCellGetAllListsOfType ca = do
   as <- mxCellGetArraysOfType ca
-  join <$> (sequence $ mxArrayGetAll <$> as)
+  traverse mxArrayGetAll as
 
 class (MXArrayComponent a, MType mx a, Storable mx) => MXArrayData mx a where
   -- withArrayData :: MXArray a -> (Ptr mx -> IO b) -> IO b
