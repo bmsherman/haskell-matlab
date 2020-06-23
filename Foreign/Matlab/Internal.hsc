@@ -25,7 +25,7 @@ module Foreign.Matlab.Internal (
     MAny, MAnyArray,
     MNull, mNullArray, isMNull,
     MCell(..),
-    MStruct(..), mStruct,
+    MStruct(..), mStruct, mStructEmpty,
     MXFun, MFun,
     MWSize, MWIndex, MWSignedIndex
   ) where
@@ -206,6 +206,9 @@ instance MType MStruct MStruct where
 
 mStruct :: Iso' MStruct (DM.Map String MAnyArray)
 mStruct = coerced
+
+mStructEmpty :: MStruct
+mStructEmpty = MStruct DM.empty
 
 type MXFun = CInt -> Ptr MXArrayPtr -> CInt -> Ptr MXArrayPtr -> IO ()
 -- |A Matlab function
