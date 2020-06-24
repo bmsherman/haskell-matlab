@@ -10,6 +10,7 @@ module Foreign.Matlab.ZIOEngine.Wrappers (
 , clearVar
 , getArrayFromByteStream
 , getByteStreamFromArray
+, cd, pwd
 , EW.MEither(..), isMLeft, isMRight
 , EW.VarArgIn, EW.mxVarArgs
 ) where
@@ -59,3 +60,15 @@ isMRight :: EW.MEither -> ZIO r MatlabException Bool
 isMRight me = do
   sFields <- ZA.mStructFields $ EW.unMXEither me
   pure $ "right" `elem` sFields
+
+--- --- --- Functions currently in ZIO Wrappers only follow --- --- ---
+
+cd :: HasEngine r => (Path Abs Dir) -> ZIO r MatlabException ()
+cd dir = engineEvalProc "cd" [EvalString $ fromAbsDir dir]
+
+pwd :: HasEngine r => ZIO r MatlabException (Path Abs Dir)
+pwd = do
+  pwdDirAnyArr <- headZ "pwd returned nothing" =<< engineEvalFun "pwd" [] 1
+  pwdDirCArr <- ZA.castMXArray pwdDirAnyArr
+  dir <- ZA.mxArrayGetAll pwdDirCArr
+  mxleZ . zlift $ parseAbsDir dir
