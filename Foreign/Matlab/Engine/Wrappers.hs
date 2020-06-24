@@ -24,12 +24,12 @@ type VarArgIn = DM.Map String MAnyArray
 
 -- | We require an absolute path in this case
 addpath :: Engine -> Path Abs Dir -> IO ()
-addpath eng p = engineEvalProc eng "addpath" [EvalStr $ toFilePath p]
+addpath eng p = engineEvalProc eng "addpath" [EvalString $ toFilePath p]
 
 -- | TODO: add a test for this, likely not working as expected.
 -- | Clears a variable from the engine's workspace
 clearVar :: Engine -> String -> IO ()
-clearVar eng var = engineEvalProc eng "clear" [EvalStr var]
+clearVar eng var = engineEvalProc eng "clear" [EvalString var]
 
 -- | Wraps an undocumented function to serialize a MATLAB object.
 getByteStreamFromArray :: Engine -> MAnyArray -> IO (Either String [MUint8])
@@ -66,4 +66,4 @@ mxVarArgs :: VarArgIn -> [EngineEvalArg MAny]
 mxVarArgs varargin = DM.toList varargin >>= kvToArg
   where
   kvToArg :: (String, MAnyArray) -> [EngineEvalArg MAny]
-  kvToArg kv = [EvalStr $ fst kv, EvalArray $ snd kv]
+  kvToArg kv = [EvalString $ fst kv, EvalArray $ snd kv]

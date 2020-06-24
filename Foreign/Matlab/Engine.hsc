@@ -81,7 +81,7 @@ engineSetVar eng v x = do
   r <- withEngine eng (\eng -> withCString v (withMXArray x . engPutVariable eng))
   when (r /= 0) $ throwError $ userError "engineSetVar"
 
-data EngineEvalArg a = EvalArray (MXArray a) | EvalStruct MStruct | EvalVar String | EvalStr String
+data EngineEvalArg a = EvalArray (MXArray a) | EvalStruct MStruct | EvalVar String | EvalString String
 
 -- |Evaluate a function with the given arguments and number of results.
 -- This automates 'engineSetVar' on arguments (using \"hseval_inN\"), 'engineEval', and 'engineGetVar' on results (using \"hseval_outN\").
@@ -103,7 +103,7 @@ engineEvalFun eng fun args no = do
       engineSetVar eng v xa
       pure v
     makearg (EvalVar v) _ = pure v
-    makearg (EvalStr v) _ = pure $ qt v
+    makearg (EvalString v) _ = pure $ qt v
     makeout i = "hseval_out" ++ show i
 
 -- |Convenience function for calling functions that do not return values (i.e. "procedures").

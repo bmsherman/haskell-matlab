@@ -25,12 +25,12 @@ import           ZIO.Trans
 
 -- | We require an absolute path in this case
 addpath :: HasEngine r => Path Abs Dir -> ZIO r MatlabException ()
-addpath p = engineEvalProc "addpath" [EvalStr $ toFilePath p]
+addpath p = engineEvalProc "addpath" [EvalString $ toFilePath p]
 
 -- | TODO: add a test for this, likely not working as expected.
 -- | Clears a variable from the engine's workspace
 clearVar :: HasEngine r => String -> ZIO r MatlabException ()
-clearVar var = engineEvalProc "clear" [EvalStr var]
+clearVar var = engineEvalProc "clear" [EvalString var]
 
 -- | Wraps an undocumented function to serialize a MATLAB object.
 getByteStreamFromArray :: HasEngine r => MAnyArray -> ZIO r MatlabException [MUint8]
