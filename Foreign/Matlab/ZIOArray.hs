@@ -73,7 +73,7 @@ mxArrayClass = ezlift . EA.mxArrayClass
 castMNull :: MAnyArray -> ZIO r MatlabException A.MNullArray
 castMNull a
   | isMNull a = pure $ unsafeCastMXArray a
-  | otherwise = throwError MXNothing
+  | otherwise = throwError $ MXNothing "castMNull"
 
 -- |Safely cast a generic array to a type, or return Nothing if the array does not have the proper type
 castMXArray :: forall r a. A.MXArrayComponent a => MAnyArray -> ZIO r MatlabException (MXArray a)

@@ -56,7 +56,7 @@ mxlsZ = mapZError $ \s -> MXLibError $ Ex.toException $ errorCallException s
 
 mxToMaybeE :: EIO MatlabException a -> EIO MatlabException (Maybe a)
 mxToMaybeE eio = catchError (pure <$> eio) (\case
-  MXNothing -> pure Nothing
+  MXNothing _ -> pure Nothing
   _ -> (pure <$> eio)
   )
 

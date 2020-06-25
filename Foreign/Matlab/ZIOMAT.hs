@@ -43,7 +43,7 @@ matGet m n = do
   aMay <- mxreZ . zlift $ MM.matGet m n
   case aMay of
     Just arr -> pure arr
-    Nothing -> throwError MXNothing
+    Nothing -> throwError $ MXNothing $ "matGet: Couldn't read array: " <> n
 
 -- |Remove a variable with with the specified name from the MAT-file.
 matRemove :: MM.MATFile -> String -> ZIO r MatlabException ()

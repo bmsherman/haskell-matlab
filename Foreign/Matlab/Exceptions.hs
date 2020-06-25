@@ -9,7 +9,7 @@ data MatlabException =
     MXLogicalError String -- ^ 
   | MXRuntimeError Ex.SomeException
   | MXEngineError Ex.SomeException
-  | MXNothing -- ^ To avoid wrapping Maybes by default.
+  | MXNothing String -- ^ To avoid wrapping Maybes by default.
   | MXLibError Ex.SomeException -- ^ Error creatined in a downstream library
   | MXAppError Ex.SomeException -- ^ Error creatined in a downstream application
   deriving (Show, Typeable)

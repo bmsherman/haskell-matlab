@@ -75,7 +75,7 @@ mxArrayClass = mxreE . elift . A.mxArrayClass
 castMNull :: MAnyArray -> EIO MatlabException A.MNullArray
 castMNull a
   | isMNull a = pure $ unsafeCastMXArray a
-  | otherwise = throwError MXNothing
+  | otherwise = throwError $ MXNothing "castMNull"
 
 -- |Safely cast a generic array to a type, or return Nothing if the array does not have the proper type
 castMXArray :: forall a. A.MXArrayComponent a => MAnyArray -> EIO MatlabException (MXArray a)
@@ -83,7 +83,7 @@ castMXArray a = do
   aMay <- mxreE . elift $ A.castMXArray a
   case aMay of
     Just arr -> pure arr
-    Nothing -> throwError MXNothing
+    Nothing -> throwError $ MXNothing "castMXArray"
 
 -- |Get the size (dimensions) of an array
 mxArraySize :: MXArray a -> EIO MatlabException MSize

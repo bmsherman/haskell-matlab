@@ -8,6 +8,7 @@
 module Foreign.Matlab.ZIOEngine.Wrappers (
   addpath
 , clearVar
+, disp
 , getArrayFromByteStream
 , getByteStreamFromArray
 , cd, pwd
@@ -72,3 +73,6 @@ pwd = do
   pwdDirCArr <- ZA.castMXArray pwdDirAnyArr
   dir <- ZA.mxArrayGetAll pwdDirCArr
   mxleZ . zlift $ parseAbsDir dir
+
+disp :: HasEngine r => MXArray a -> ZIO r MatlabException ()
+disp a = engineEvalProc "disp" [EvalArray $ ZA.anyMXArray a]
