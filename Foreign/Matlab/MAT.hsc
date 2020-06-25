@@ -4,6 +4,7 @@
 module Foreign.Matlab.MAT (
     MATFile,
     MATMode(..),
+    matClose,
     matOpen,
     matSet,
     matGet,
@@ -15,6 +16,8 @@ module Foreign.Matlab.MAT (
   ) where
 
 import Control.Monad
+import Control.Monad.Except
+
 import Foreign
 import Foreign.C.Types
 import Foreign.C.String
@@ -60,7 +63,7 @@ matSet :: MATFile
   -> String -> MXArray a -> IO ()
 matSet m g n v = do
   r <- withMATFile m (\m -> withCString n (withMXArray v . (if g then matPutVariableAsGlobal else matPutVariable) m))
-  when (r /= 0) $ fail "matPut"
+  when (r /= 0) $ throwError $ userError "matPut"
 
 foreign import ccall unsafe matGetVariable :: MATFilePtr -> CString -> IO MXArrayPtr
 -- |Read the array value for the specified variable name from a MAT-file.
@@ -76,7 +79,7 @@ foreign import ccall unsafe matDeleteVariable :: MATFilePtr -> CString -> IO CIn
 matRemove :: MATFile -> String -> IO ()
 matRemove m n = do
   r <- withMATFile m (withCString n . matDeleteVariable)
-  when (r /= 0) $ fail "matRemove"
+  when (r /= 0) $ throwError $ userError "matRemove"
 
 foreign import ccall unsafe mxFree :: Ptr a -> IO ()
 
@@ -87,7 +90,7 @@ matList m =
   withMATFile m $ \m -> alloca $ \n -> do
   sp <- matGetDir m n
   n <- peek n
-  when (n < 0) $ fail "matList"
+  when (n < 0) $ throwError $ userError "matList"
   s <- mapM peekCString =<< peekArray (ii n) sp
   mxFree sp
   return s

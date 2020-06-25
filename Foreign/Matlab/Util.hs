@@ -2,6 +2,7 @@ module Foreign.Matlab.Util where
 
 import Control.Monad
 import Foreign
+import Path
 
 infixl 1 >., >.=, >=.
 infixr 1 =.<, .=<
@@ -57,3 +58,10 @@ replaceIndex :: [a] -> Int -> a -> [a]
 replaceIndex [] _ _ = error "replaceIndex: index too large"
 replaceIndex (_:l) 0 y = y:l
 replaceIndex (x:l) n y = x : replaceIndex l (pred n) y
+
+
+fromFile :: Path b File -> FilePath
+fromFile = toFilePath
+
+fromDir :: Path b Dir -> FilePath
+fromDir = toFilePath

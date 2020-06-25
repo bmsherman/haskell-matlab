@@ -58,6 +58,7 @@ library
                       Foreign.Matlab.EIOArray,
                       Foreign.Matlab.MAT,
                       Foreign.Matlab.ZIOArray
+		      Foreign.Matlab.ZIOMAT
                       Foreign.Matlab.ZIOTypes
   Other-modules:      Foreign.Matlab.Array.Internal,
                       Foreign.Matlab.Optics,
