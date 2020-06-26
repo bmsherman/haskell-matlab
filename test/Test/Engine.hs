@@ -10,6 +10,7 @@ import Foreign.Matlab
 import Foreign.Matlab.Array
 import Foreign.Matlab.Engine
 import Foreign.Matlab.Engine.Wrappers
+import Foreign.Matlab.MAT
 import Language.Haskell.TH (Q, runIO)
 import Language.Haskell.TH.Syntax (lift)
 import Path
@@ -19,6 +20,9 @@ engineTests = runEngineTests ""
 
 runEngineTests :: String -> IO ()
 runEngineTests host = do
+  putStrLn " -- Non-engine tests --"
+  testLoadFiles
+  testGetFirstLast
   putStrLn "-- Starting engine --"
   eng <- newEngine host
   putStrLn "-- Engine created --"
@@ -27,7 +31,6 @@ runEngineTests host = do
   runLocalMatFun eng
   cosOfPi eng
   testIsMNull eng
-  testGetFirstLast eng
   testAbstractValueUse eng
   testTypedAbstractValueUse eng
   testGetByteStreamFromArray eng
@@ -71,8 +74,8 @@ testIsMNull eng = do
   xaeResEi <- mxArrayGetFirst xaeRes
   putStrLn $ "  xaeResEi is Left: " <> (show xaeResEi)
 
-testGetFirstLast :: Engine -> IO ()
-testGetFirstLast eng = do
+testGetFirstLast :: IO ()
+testGetFirstLast = do
   putStrLn $ "\n-- testGetFirstLast --"
   let testVal :: MDouble = 1.0
   xa <- createMXScalar testVal
@@ -172,6 +175,20 @@ testCellGet eng = do
   let dValsMsg = assert (length dVals == 4) "cell array has 4 double values"
   putStrLn dValsMsg
 
+-- TODO: Shouldn't need engine for this
+testLoadFiles :: IO ()
+testLoadFiles = do
+  let doublesPath = repoDir </> testRel </> doublesFile
+  
+  putStrLn $ "reading models file: " <> (toFilePath doublesPath)
+  mdFile <- matOpen (toFilePath doublesPath) MATRead
+  Just (mxDubsAA :: MAnyArray) <- matGet mdFile "fiveSquares"
+  Just (mxDubs :: MXArray MDouble) <- castMXArray mxDubsAA
+  dubs <- mxArrayGetAll mxDubs
+  putStrLn $ show dubs
+  
+  
+
 testClearVar :: Engine -> IO ()
 testClearVar eng = do
   putStrLn $ "\n-- testClearVar --"
@@ -192,3 +209,6 @@ testRel = $(mkRelDir "test")
 
 repoDir :: Path Abs Dir
 repoDir = $(mkAbsDir getRepoDirStatic)
+
+doublesFile :: Path Rel File
+doublesFile = $(mkRelFile "fiveSquares.mat")
