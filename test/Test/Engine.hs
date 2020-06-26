@@ -6,6 +6,7 @@ module Test.Engine where
 
 import Control.Exception (SomeException, assert, try)
 import Data.Either (isLeft, isRight, lefts)
+import Data.List (intercalate)
 import Foreign.Matlab
 import Foreign.Matlab.Array
 import Foreign.Matlab.Engine
@@ -179,13 +180,19 @@ testCellGet eng = do
 testLoadFiles :: IO ()
 testLoadFiles = do
   let doublesPath = repoDir </> testRel </> doublesFile
-  
-  putStrLn $ "reading models file: " <> (toFilePath doublesPath)
+  putStrLn $ "reading doubles file: " <> (toFilePath doublesPath)
   mdFile <- matOpen (toFilePath doublesPath) MATRead
   Just (mxDubsAA :: MAnyArray) <- matGet mdFile "fiveSquares"
   Just (mxDubs :: MXArray MDouble) <- castMXArray mxDubsAA
   dubs <- mxArrayGetAll mxDubs
-  putStrLn $ show dubs
+
+  let cellSPath = repoDir </> testRel </> cellStringsFile
+  putStrLn $ "reading cell strings file: " <> (toFilePath cellSPath)
+  mcsFile <- matOpen (toFilePath cellSPath) MATRead
+  Just (mxCSAA :: MAnyArray) <- matGet mcsFile "helloCell"
+  Just (mxCS :: MXArray MCell) <- castMXArray mxCSAA
+  cellStrings :: [String] <- mxCellGetAllListsOfType mxCS
+  putStrLn $ intercalate " " cellStrings
   
   
 
@@ -212,3 +219,6 @@ repoDir = $(mkAbsDir getRepoDirStatic)
 
 doublesFile :: Path Rel File
 doublesFile = $(mkRelFile "fiveSquares.mat")
+
+cellStringsFile :: Path Rel File
+cellStringsFile = $(mkRelFile "helloCell.mat")
