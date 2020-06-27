@@ -24,6 +24,7 @@ runEngineTests host = do
   putStrLn " -- Non-engine tests --"
   testLoadFiles
   testGetFirstLast
+  makeEmptyArrays
   putStrLn "-- Starting engine --"
   eng <- newEngine host
   putStrLn "-- Engine created --"
@@ -194,7 +195,23 @@ testLoadFiles = do
   cellStrings :: [String] <- mxCellGetAllListsOfType mxCS
   putStrLn $ intercalate " " cellStrings
   
-  
+makeEmptyArrays :: IO ()
+makeEmptyArrays = do
+  dubE <- fromListIO ([] :: [MDouble])
+  putStrLn $ "isMNull dubE?:" <> (show $ isMNull dubE)
+  dubs <- mxArrayGetAll dubE
+  let dubLen_ = length dubs
+  let dubLen = assert (dubLen_ == 0) dubLen_
+  putStrLn $ "dubLen: " <> (show dubLen)
+
+  cellsE <- fromListIO ([] :: [MCell])
+  putStrLn $ "isMNull cellsE?:" <> (show $ isMNull cellsE)
+  cells <- mxArrayGetAll cellsE
+  let cellLen_ = length cells
+  let cellLen = assert (cellLen_ == 0) cellLen_
+  putStrLn $ "cellLen: " <> (show cellLen)
+
+  pure ()
 
 testClearVar :: Engine -> IO ()
 testClearVar eng = do
