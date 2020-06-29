@@ -152,7 +152,7 @@ mxArrayGetOffsetSafe :: forall a. A.MXArrayComponent a
   => MXArray a -> Int -> EIO MatlabException a
 mxArrayGetOffsetSafe arr ix = do
   aEi <- mxreE . elift $ A.mxArrayGetOffsetSafe arr ix
-  liftEither (mapLeft MXLogicalError aEi)
+  liftEither (mapLeft MXNothing aEi)
 
 -- | Create and populate an MXArray in one go. Named without 'mx' due to possible
 -- | conformity to a typeclass function.
