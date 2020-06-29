@@ -123,12 +123,7 @@ freeMXArray a = do
 -- | Create and populate an MXArray in one go. Named without 'mx' due to possible
 -- | conformity to a typeclass function.
 fromListIO :: (Foldable t, MXArrayComponent a) => t a -> MIO (MXArray a)
-fromListIO xs = do
-  arr <- createMXArray [length xs]
-  mxArraySetAll arr xsList
-  pure arr
-  where
-    xsList = toList xs
+fromListIO = createRowVector . toList
 
 -- | Like fromListIO but wraps elements in a cell. Most useful for converting a list of strings
 -- | to a MATLAB cell array of strings. Named in conjunction with `fromListIO`, which is used
