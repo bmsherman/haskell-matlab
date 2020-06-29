@@ -203,6 +203,8 @@ makeEmptyArrays = do
   let dubLen_ = length dubs
   let dubLen = assert (dubLen_ == 0) dubLen_
   putStrLn $ "dubLen: " <> (show dubLen)
+  dubsLastEi <- mxArrayGetLast dubE
+  putStrLn $ "isRight dubsLastEi?: " <> (show $ isRight dubsLastEi)
 
   cellsE <- fromListIO ([] :: [MCell])
   putStrLn $ "isMNull cellsE?:" <> (show $ isMNull cellsE)
@@ -210,6 +212,8 @@ makeEmptyArrays = do
   let cellLen_ = length cells
   let cellLen = assert (cellLen_ == 0) cellLen_
   putStrLn $ "cellLen: " <> (show cellLen)
+  cellLastEi <- mxArrayGetLast cellsE
+  putStrLn $ "isRight cellLastEi?: " <> (show $ isRight cellLastEi)
 
   pure ()
 
