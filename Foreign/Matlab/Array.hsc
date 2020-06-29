@@ -236,7 +236,7 @@ mxArrayGetOffsetSafe arr ix
   where
     safeGetElem :: Int -> Int -> MIO (Either String a)
     safeGetElem aLen aIx
-      | aIx < aLen = Right <$> mxArrayGetOffset arr aIx
+      | (aIx < aLen) && (aLen > 0) = Right <$> mxArrayGetOffset arr aIx
       | otherwise = pure $ Left $ "Couldn't get element at index "
         <> (show aIx) <> " of " <> (show aLen) <> "-length array"
 
