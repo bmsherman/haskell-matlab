@@ -368,8 +368,10 @@ instance MXArrayComponent MStruct where
   mxArrayGetOffset = mxArrayGetOffsetMStruct
   mxArraySetOffset = mxArraySetOffsetMStruct
   mxArrayGetOffsetList = mxArrayGetOffsetListMStruct
+  mxArraySetOffsetList = mxArraySetOffsetListMStruct
   createMXScalar = createMXScalarMStruct
-
+  createColVector = createColVectorMStruct
+  createRowVector = createRowVectorMStruct
 
 -- |Determine if a struct array is a user defined object, and return its class name, if any.
 mObjectGetClass :: MStructArray -> IO (Maybe String)
@@ -388,6 +390,7 @@ mObjectSetClass a c = do
 -- |Complex array access.
 instance (RealFloat a, MNumeric a, MXArrayData mx a) => MXArrayComponent (MComplex a) where
   isMXArray = isMXArrayMComplex
+  -- | This should rarely be used directly for MStruct; use `createStruct` instead
   createMXArray = createMXArrayMComplex
   mxArrayGetOffset = mxArrayGetOffsetMComplex
   mxArraySetOffset = mxArraySetOffsetMComplex

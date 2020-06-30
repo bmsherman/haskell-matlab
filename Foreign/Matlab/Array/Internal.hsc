@@ -7,7 +7,10 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 import           Data.Complex
+import           Data.Function ((&))
+import           Data.Functor ((<&>))
 import qualified Data.Map.Strict as DM
+import qualified Data.Set as DS
 import           Foreign.Matlab.Util
 import           Foreign.Matlab.Internal
 import           Foreign.Matlab.Types
@@ -168,6 +171,19 @@ createStruct s f =
       mxCreateStructArray nd d (ii nf) f))
   >>= mkMXArray
 
+createRowVectorMStruct :: [MStruct] -> MIO MStructArray
+createRowVectorMStruct ss = createVectorMStruct ss [1, length ss]
+
+createColVectorMStruct :: [MStruct] -> MIO MStructArray
+createColVectorMStruct ss = createVectorMStruct ss [length ss]
+
+createVectorMStruct :: [MStruct] -> MSize -> MIO MStructArray
+createVectorMStruct ss sz = do
+  let fields = ss <&> _mStruct <&> DM.keys <&> DS.fromList & DS.unions & DS.toList
+  a <- createStruct sz fields
+  mxArraySetOffsetListMStruct a 0 ss
+  pure a
+
 -- |Get the names of the fields
 mStructFields :: MStructArray -> MIO [String]
 mStructFields a = withMXArray a $ \a -> do
@@ -182,6 +198,8 @@ structGetOffsetFields a f o =
 isMXArrayMStruct :: MXArray MStruct -> IO Bool
 isMXArrayMStruct a = liftM2 (||) (boolC =.< withMXArray a mxIsStruct) (boolC =.< withMXArray a mxIsObject)
 
+-- |Warning, this should typically not be used as is. Use the underlying function, `createStruct`,
+-- |in order to specify field names.
 createMXArrayMStruct :: MSize -> MIO (MXArray MStruct)
 createMXArrayMStruct s = createStruct s []
 
@@ -215,6 +233,9 @@ mxArraySetOffsetMStruct mxms ix ms = do
   let smap = _mStruct ms
   let fields = DM.keys smap
   forM_ fields (\f -> mStructSet mxms (MSubs [ix]) f (smap DM.! f))
+
+mxArraySetOffsetListMStruct :: MXArray MStruct -> Int -> [MStruct] -> MIO ()
+mxArraySetOffsetListMStruct a o = zipWithM_ (mxArraySetOffsetMStruct a . (o+)) [0..]
 
 mxArrayGetOffsetListMStruct :: MXArray MStruct -> Int -> Int -> MIO [MStruct]
 mxArrayGetOffsetListMStruct a o n = do

@@ -121,9 +121,14 @@ testCreateRowVectorOfStructs eng = do
   sOut <- makeTestStruct eng
   Just mxSA <- castMXArray sOut
   Right ms <- mxArrayGetFirst mxSA
-  mxSA2 <- fromListIO [ms, ms, ms, ms]
-  msList :: [MStruct] <- mxArrayGetAll mxSA2
-  putStrLn $ "length of msList is " <> (show $ length msList)
+
+  mxSA1 <- createRowVector [ms]
+  msList1 :: [MStruct] <- mxArrayGetAll mxSA1
+  putStrLn $ "length of msList1 is " <> (show $ length msList1)
+
+  mxSA2 <- createRowVector [ms, ms, ms, ms]
+  msList2 :: [MStruct] <- mxArrayGetAll mxSA2
+  putStrLn $ "length of msList2 is " <> (show $ length msList2)
 
 newtype MyAbsType = MyAbsType { unMyAbsType :: MAnyArray }
 
@@ -204,7 +209,7 @@ testLoadFiles = do
   Just (mxCS :: MXArray MCell) <- castMXArray mxCSAA
   cellStrings :: [String] <- mxCellGetAllListsOfType mxCS
   putStrLn $ intercalate " " cellStrings
-  
+
 makeEmptyArrays :: IO ()
 makeEmptyArrays = do
   dubE <- fromListIO ([] :: [MDouble])
