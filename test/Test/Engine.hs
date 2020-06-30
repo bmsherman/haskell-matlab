@@ -33,6 +33,7 @@ runEngineTests host = do
   runLocalMatFun eng
   cosOfPi eng
   testIsMNull eng
+  testCreateRowVectorOfStructs eng
   testAbstractValueUse eng
   testTypedAbstractValueUse eng
   testGetByteStreamFromArray eng
@@ -114,6 +115,15 @@ useTestStruct eng sIn = do
     Just mxArr -> mxScalarGet mxArr
     Nothing -> pure 0.0
 
+testCreateRowVectorOfStructs :: Engine -> IO ()
+testCreateRowVectorOfStructs eng = do
+  putStrLn $ "\n-- testCreateRowVectorOfStructs --"
+  sOut <- makeTestStruct eng
+  Just mxSA <- castMXArray sOut
+  Right ms <- mxArrayGetFirst mxSA
+  mxSA2 <- fromListIO [ms, ms, ms, ms]
+  msList :: [MStruct] <- mxArrayGetAll mxSA2
+  putStrLn $ "length of msList is " <> (show $ length msList)
 
 newtype MyAbsType = MyAbsType { unMyAbsType :: MAnyArray }
 
@@ -214,8 +224,6 @@ makeEmptyArrays = do
   putStrLn $ "cellLen: " <> (show cellLen)
   cellLastEi <- mxArrayGetLast cellsE
   putStrLn $ "isRight cellLastEi?: " <> (show $ isRight cellLastEi)
-
-  pure ()
 
 testClearVar :: Engine -> IO ()
 testClearVar eng = do
