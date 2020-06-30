@@ -101,13 +101,6 @@ foreign import ccall unsafe mxGetNumberOfElements :: MXArrayPtr -> IO CSize
 mxArrayLength :: MXArray a -> MIO Int
 mxArrayLength a = ii =.< withMXArray a mxGetNumberOfElements
 
-foreign import ccall unsafe mxCalcSingleSubscript :: MXArrayPtr -> MWSize -> Ptr MWIndex -> IO MWIndex
--- |Convert an array subscript into an offset
-mIndexOffset :: MXArray a -> MIndex -> MIO Int
-mIndexOffset _ (MSubs []) = pure 0
-mIndexOffset _ (MSubs [i]) = pure i
-mIndexOffset a (MSubs i) = ii =.< withMXArray a (withNSubs i . uncurry . mxCalcSingleSubscript)
-
 foreign import ccall unsafe mxDuplicateArray :: MXArrayPtr -> IO MXArrayPtr
 -- |Make a deep copy of an array
 copyMXArray :: MXArray a -> MIO (MXArray a)
@@ -349,18 +342,6 @@ instance MXArrayComponent MCell where
   mxArrayGetOffset = mxArrayGetOffsetMCell
   -- Set an element in a cell array to the specified value. The cell takes ownership of the array: and no copy is made. Any existing value should be freed first.
   mxArraySetOffset = mxArraySetOffsetMCell
-
--- |Return the contents of the named field for the given element.
--- |Returns 'MNullArray' on no such field or if the field itself is NULL
-mStructGet :: MStructArray -> MIndex -> String -> MIO MAnyArray
--- |Sets the contents of the named field for the given element. The input is stored in the array -- no copy is made.
-mStructSet :: MStructArray -> MIndex -> String -> MXArray a -> MIO ()
-mStructGet a i f = do
-  o <- mIndexOffset a i
-  withMXArray a (\a -> withCString f (mxGetField a (ii o) >=> mkMXArray))
-mStructSet a i f v = do
-  o <- mIndexOffset a i
-  withMXArray a (\a -> withCString f (withMXArray v . mxSetField a (ii o)))
 
 -- |Add a field to a structure array.
 mStructAddField :: MStructArray -> String -> MIO ()

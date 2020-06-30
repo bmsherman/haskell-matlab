@@ -185,14 +185,36 @@ isMXArrayMStruct a = liftM2 (||) (boolC =.< withMXArray a mxIsStruct) (boolC =.<
 createMXArrayMStruct :: MSize -> MIO (MXArray MStruct)
 createMXArrayMStruct s = createStruct s []
 
+-- |Convert an array subscript into an offset
+mIndexOffset :: MXArray a -> MIndex -> MIO Int
+mIndexOffset _ (MSubs []) = pure 0
+mIndexOffset _ (MSubs [i]) = pure i
+mIndexOffset a (MSubs i) = ii =.< withMXArray a (withNSubs i . uncurry . mxCalcSingleSubscript)
+
+foreign import ccall unsafe mxCalcSingleSubscript :: MXArrayPtr -> MWSize -> Ptr MWIndex -> IO MWIndex
+
+-- |Return the contents of the named field for the given element.
+-- |Returns 'MNullArray' on no such field or if the field itself is NULL
+mStructGet :: MStructArray -> MIndex -> String -> MIO MAnyArray
+-- |Sets the contents of the named field for the given element. The input is stored in the array -- no copy is made.
+mStructSet :: MStructArray -> MIndex -> String -> MXArray a -> MIO ()
+mStructGet a i f = do
+  o <- mIndexOffset a i
+  withMXArray a (\a -> withCString f (mxGetField a (ii o) >=> mkMXArray))
+mStructSet a i f v = do
+  o <- mIndexOffset a i
+  withMXArray a (\a -> withCString f (withMXArray v . mxSetField a (ii o)))
+
 mxArrayGetOffsetMStruct :: MXArray MStruct -> Int -> MIO MStruct
 mxArrayGetOffsetMStruct a o = do
   f <- mStructFields a
   structGetOffsetFields a f o
 
 mxArraySetOffsetMStruct :: MXArray MStruct -> Int -> MStruct -> MIO ()
-mxArraySetOffsetMStruct = error "mxArraySet undefined for MStruct: use mStructSet" -- arrayDataSetDef
-
+mxArraySetOffsetMStruct mxms ix ms = do
+  let smap = _mStruct ms
+  let fields = DM.keys smap
+  forM_ fields (\f -> mStructSet mxms (MSubs [ix]) f (smap DM.! f))
 
 mxArrayGetOffsetListMStruct :: MXArray MStruct -> Int -> Int -> MIO [MStruct]
 mxArrayGetOffsetListMStruct a o n = do
