@@ -1,5 +1,5 @@
 Name:                matlab
-Version:             0.2.0.0
+Version:             0.3.0.0
 Cabal-Version:       >= 1.10
 Author:              Dylan Simon, Ben Sherman
 Maintainer:          Ben Sherman <benmsherman@gmail.com>
@@ -80,8 +80,8 @@ Source-repository head
 
 Source-repository this
   Type:     git
-  Location: git://github.com/bmsherman/haskell-matlab/releases/tag/0.2.0.0.git
-  Tag:      0.2.0.0
+  Location: git://github.com/bmsherman/haskell-matlab/releases/tag/0.3.0.0.git
+  Tag:      0.3.0.0
 
 -- test-suite matlab-test
 --   type: exitcode-stdio-1.0
