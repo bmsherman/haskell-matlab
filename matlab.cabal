@@ -1,8 +1,8 @@
 Name:                matlab
 Version:             0.3.0.0
 Cabal-Version:       >= 1.10
-Author:              Dylan Simon, Ben Sherman
-Maintainer:          Ben Sherman <benmsherman@gmail.com>
+Author:              Dylan Simon, Ben Sherman, Brandon Barker
+Maintainer:          Brandon Barker <brandon.barker@cornell.edu>
 License:             BSD3
 License-file:        LICENSE
 Synopsis:            Matlab bindings and interface
