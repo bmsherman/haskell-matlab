@@ -5,6 +5,8 @@
  This seems to be a Matlab limitation.
  -}
 
+{-# LANGUAGE ExplicitForAll #-}
+
 module Foreign.Matlab.ZIOEngine.Wrappers (
   addpath
 , clearVar
@@ -12,11 +14,14 @@ module Foreign.Matlab.ZIOEngine.Wrappers (
 , getArrayFromByteStream
 , getByteStreamFromArray
 , cd, pwd
+, MXMap(..), mmapKeys, mmapToHmap
 , EW.MEither(..), isMLeft, isMRight
 , EW.VarArgIn, EW.mxVarArgs
 ) where
 
+import qualified Data.Map.Strict as DM
 import           Foreign.Matlab
+import qualified Foreign.Matlab.Array as A
 import qualified Foreign.Matlab.Engine.Wrappers as EW
 import qualified Foreign.Matlab.ZIOArray as ZA
 import           Foreign.Matlab.ZIOEngine
@@ -76,3 +81,23 @@ pwd = do
 
 disp :: HasEngine r => MXArray a -> ZIO r MatlabException ()
 disp a = engineEvalProc "disp" [EvalArray $ ZA.anyMXArray a]
+
+newtype MXMap = MXMap { _mxMap :: MAnyArray }
+
+mmapToHmap :: forall r a. (HasEngine r, ZA.MXArrayComponent a)
+  => MXMap -> ZIO r MatlabException (DM.Map String a)
+mmapToHmap mmap = do
+  keys <- mmapKeys mmap
+  values <- engineEvalFun "values" [
+      EvalArray $ A.anyMXArray $ _mxMap mmap
+    , EvalArray $ A.anyMXArray $ keys] 1
+    >>= headZ "No results from engineEvalFun:values" >>= ZA.castMXArray
+  keyList <- ZA.mxCellGetAllListsOfType keys
+  valueList <- ZA.mxArrayGetAll values
+  pure $ DM.fromList $ zip keyList valueList
+
+
+-- | Low-level interface to get a container.Map's keys
+mmapKeys :: HasEngine r => MXMap -> ZIO r MatlabException (MXArray MCell)
+mmapKeys mmap = engineEvalFun "keys" [EvalArray $ _mxMap mmap] 1
+  >>= headZ "No results from mmapKeys" >>= ZA.castMXArray
