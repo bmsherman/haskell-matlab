@@ -5,7 +5,8 @@
  This seems to be a Matlab limitation.
  -}
 
-{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE ExplicitForAll      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Foreign.Matlab.ZIOEngine.Wrappers (
   addpath
@@ -85,15 +86,15 @@ disp a = engineEvalProc "disp" [EvalArray $ ZA.anyMXArray a]
 newtype MXMap = MXMap { _mxMap :: MAnyArray }
 
 mmapToHmap :: forall r a. (HasEngine r, ZA.MXArrayComponent a)
-  => MXMap -> ZIO r MatlabException (DM.Map String a)
+  => MXMap -> ZIO r MatlabException (DM.Map String (MXArray a))
 mmapToHmap mmap = do
   keys <- mmapKeys mmap
-  values <- engineEvalFun "values" [
+  valuesCell :: MXArray MCell <- engineEvalFun "values" [
       EvalArray $ A.anyMXArray $ _mxMap mmap
     , EvalArray $ A.anyMXArray $ keys] 1
     >>= headZ "No results from engineEvalFun:values" >>= ZA.castMXArray
   keyList <- ZA.mxCellGetAllListsOfType keys
-  valueList <- ZA.mxArrayGetAll values
+  valueList <- ZA.mxCellGetArraysOfType valuesCell
   pure $ DM.fromList $ zip keyList valueList
 
 
