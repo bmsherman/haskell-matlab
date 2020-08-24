@@ -12,22 +12,27 @@ module Foreign.Matlab.Engine (
     engineGetVar,
     engineSetVar,
     EngineEvalArg(..),
+    engineEvalEngFun,
     engineEvalFun,
     engineEvalProc,
+    engVarToStr,
     HasEngine(..), SetEngine(..),
+    MEngVar,
     qt
   ) where
 
-import Control.Monad
-import Control.Monad.Except
-import Foreign
-import Foreign.C.String
-import Foreign.C.Types
-import Data.List
-import Foreign.Matlab.Array (createMXScalar)
-import Foreign.Matlab.Optics
-import Foreign.Matlab.Util
-import Foreign.Matlab.Internal
+import           Control.Monad
+import           Control.Monad.Except
+import           Foreign
+import           Foreign.C.String
+import           Foreign.C.Types
+import           Data.List
+import qualified Data.UUID as UUID
+import qualified Data.UUID.V4 as UUID
+import           Foreign.Matlab.Array (createMXScalar)
+import           Foreign.Matlab.Optics
+import           Foreign.Matlab.Util
+import           Foreign.Matlab.Internal
 
 #include <engine.h>
 
@@ -81,30 +86,59 @@ engineSetVar eng v x = do
   r <- withEngine eng (\eng -> withCString v (withMXArray x . engPutVariable eng))
   when (r /= 0) $ throwError $ userError "engineSetVar"
 
-data EngineEvalArg a = EvalArray (MXArray a) | EvalStruct MStruct | EvalVar String | EvalString String
+newtype MEngVar = MEngVar { _mEngVar :: String }
+  deriving (Eq,Show)
+
+engVarToStr :: MEngVar -> String
+engVarToStr = _mEngVar
+
+data EngineEvalArg a =
+    EvalArray (MXArray a)
+  | EvalStruct MStruct
+  | EvalVar String
+  | EvalMEngVar MEngVar
+  | EvalString String
 
 -- |Evaluate a function with the given arguments and number of results.
 -- This automates 'engineSetVar' on arguments (using \"hseval_inN\"), 'engineEval', and 'engineGetVar' on results (using \"hseval_outN\").
 engineEvalFun :: Engine -> String -> [EngineEvalArg a] -> Int -> IO [MAnyArray]
 engineEvalFun eng fun args no = do
-  arg <- zipWithM makearg args [1 :: Int ..]
+  arg <- zipWithM (makearg eng) args [1 :: Int ..]
   let out = map makeout [1..no]
   let outs = if out == [] then "" else "[" ++ unwords out ++ "] = "
   engineEval eng (outs ++ fun ++ "(" ++ intercalate "," arg ++ ")")
   mapM (engineGetVar eng) out
   where
-    makearg (EvalArray x) i = do
-      let v = "hseval_in" ++ show i
-      engineSetVar eng v x
-      pure v
-    makearg (EvalStruct x) i = do
-      xa <- createMXScalar x
-      let v = "hseval_in" ++ show i
-      engineSetVar eng v xa
-      pure v
-    makearg (EvalVar v) _ = pure v
-    makearg (EvalString v) _ = pure $ qt v
     makeout i = "hseval_out" ++ show i
+
+-- |Like `engineEvalFun` but returns wrapped variables in the Engine.
+-- |Since variables are persistent, they have names based on UUIDs.
+engineEvalEngFun :: Engine -> String -> [EngineEvalArg a] -> Int -> IO [MEngVar]
+engineEvalEngFun eng fun args no = do
+  arg <- zipWithM (makearg eng) args [1 :: Int ..]
+  out <- traverse (\_ -> mkEngVar) [1..no]
+  let outs = if out == [] then "" else "[" ++ unwords (engVarToStr <$> out) ++ "] = "
+  engineEval eng (outs ++ fun ++ "(" ++ intercalate "," arg ++ ")")
+  pure out
+  where
+    mkEngVar :: IO MEngVar
+    mkEngVar = do
+      uuid <- UUID.nextRandom
+      pure $ MEngVar $ "hseval_out" <> (replace '-' '_' $ UUID.toString uuid)
+
+makearg :: Engine -> EngineEvalArg a -> Int -> IO String
+makearg eng (EvalArray x) i = do
+  let v = "hseval_in" ++ show i
+  engineSetVar eng v x
+  pure v
+makearg eng (EvalStruct x) i = do
+  xa <- createMXScalar x
+  let v = "hseval_in" ++ show i
+  engineSetVar eng v xa
+  pure v
+makearg _ (EvalVar v) _ = pure v
+makearg _ (EvalMEngVar v) _ = pure $ engVarToStr $ v
+makearg _ (EvalString v) _ = pure $ qt v
 
 -- |Convenience function for calling functions that do not return values (i.e. "procedures").
 engineEvalProc :: Engine -> String -> [EngineEvalArg a] -> IO ()

@@ -45,6 +45,7 @@ library
 		      mtl >= 2.2 && < 2.3,
                       path >= 0.6 && < 0.7,
                       profunctors >= 5.3 && < 5.4,
+		      uuid,
 		      zio,
                       Cabal >= 2.1 && < 2.5
   Exposed-modules:    Foreign.Matlab,

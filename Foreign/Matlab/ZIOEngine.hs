@@ -12,6 +12,7 @@ module Foreign.Matlab.ZIOEngine (
     engineGetVar,
     engineSetVar,
     E.EngineEvalArg(..),
+    engineEvalEngFun,
     engineEvalFun,
     engineEvalProc,
     E.HasEngine(..), E.SetEngine(..),
@@ -39,6 +40,11 @@ engineSetVar v x = ask >>= \r -> mxeeZ . zlift $ E.engineSetVar (E.getEngine r) 
 -- This automates 'engineSetVar' on arguments (using \"hseval_inN\"), 'engineEval', and 'engineGetVar' on results (using \"hseval_outN\").
 engineEvalFun :: E.HasEngine r => String -> [E.EngineEvalArg a] -> Int -> ZIO r MatlabException [MAnyArray]
 engineEvalFun fun args no = ask >>= \r -> mxeeZ . zlift $ E.engineEvalFun (E.getEngine r) fun args no
+
+-- |Like `engineEvalFun` but returns wrapped variables in the Engine.
+-- |Since variables are persistent, they have names based on UUIDs.
+engineEvalEngFun :: E.HasEngine r => String -> [E.EngineEvalArg a] -> Int -> ZIO r MatlabException [E.MEngVar]
+engineEvalEngFun fun args no = ask >>= \r -> mxeeZ . zlift $ E.engineEvalEngFun (E.getEngine r) fun args no
 
 -- |Convenience function for calling functions that do not return values (i.e. "procedures").
 engineEvalProc :: E.HasEngine r => String -> [E.EngineEvalArg a] -> ZIO r MatlabException ()

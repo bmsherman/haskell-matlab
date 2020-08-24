@@ -39,6 +39,7 @@ runEngineTests host = do
   testGetByteStreamFromArray eng
   testGetArrayFromByteStream eng
   testCellGet eng
+  testAssignMap eng
   testClearVar eng
 
 cosOfPi :: Engine -> IO ()
@@ -243,6 +244,16 @@ testClearVar eng = do
   putStrLn $ assert (isLeft ei2) $
     " Can't clearVar twice: " <> (show $ lefts [ei2])
   putStrLn "  Finished testClearVar"
+
+
+testAssignMap :: Engine -> IO ()
+testAssignMap eng = do
+  putStrLn "\n-- testAssignMap --"
+  [mMap] <- engineEvalEngFun eng "mMapTest" [] 1
+  [valuesAA] <- engineEvalFun eng "values" [EvalMEngVar $ mMap] 1
+  Just valuesCA <- castMXArray valuesAA
+  values :: [String] <- mxCellGetAllListsOfType valuesCA
+  putStrLn $ show $ values
 
 
 testRel :: Path Rel Dir

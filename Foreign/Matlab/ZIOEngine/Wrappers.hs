@@ -22,6 +22,7 @@ module Foreign.Matlab.ZIOEngine.Wrappers (
 
 import qualified Data.Map.Strict as DM
 import           Foreign.Matlab
+import qualified Foreign.Matlab.Engine as E
 import qualified Foreign.Matlab.Array as A
 import qualified Foreign.Matlab.Engine.Wrappers as EW
 import qualified Foreign.Matlab.ZIOArray as ZA
@@ -83,14 +84,14 @@ pwd = do
 disp :: HasEngine r => MXArray a -> ZIO r MatlabException ()
 disp a = engineEvalProc "disp" [EvalArray $ ZA.anyMXArray a]
 
-newtype MXMap = MXMap { _mxMap :: MAnyArray }
+newtype MXMap = MXMap { _mxMap :: E.MEngVar }
 
 mmapToHmap :: forall r a. (HasEngine r, ZA.MXArrayComponent a)
   => MXMap -> ZIO r MatlabException (DM.Map String (MXArray a))
 mmapToHmap mmap = do
   keys <- mmapKeys mmap
   valuesCell :: MXArray MCell <- engineEvalFun "values" [
-      EvalArray $ A.anyMXArray $ _mxMap mmap
+      EvalMEngVar $ _mxMap mmap
     , EvalArray $ A.anyMXArray $ keys] 1
     >>= headZ "No results from engineEvalFun:values" >>= ZA.castMXArray
   keyList <- ZA.mxCellGetAllListsOfType keys
@@ -100,5 +101,5 @@ mmapToHmap mmap = do
 
 -- | Low-level interface to get a container.Map's keys
 mmapKeys :: HasEngine r => MXMap -> ZIO r MatlabException (MXArray MCell)
-mmapKeys mmap = engineEvalFun "keys" [EvalArray $ _mxMap mmap] 1
+mmapKeys mmap = engineEvalFun "keys" [EvalMEngVar $ _mxMap mmap] 1
   >>= headZ "No results from mmapKeys" >>= ZA.castMXArray
